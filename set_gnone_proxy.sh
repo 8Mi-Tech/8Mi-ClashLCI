@@ -1,5 +1,5 @@
 #!/bin/sh
-#8Mi-ClashControl <Powered By Clash>
+#8Mi-ClashController <Powered By Clash>
 gsettings set org.gnome.system.proxy mode 'manual'
 gsettings set org.gnome.system.proxy.http port 7890
 gsettings set org.gnome.system.proxy.http host '127.0.0.1'

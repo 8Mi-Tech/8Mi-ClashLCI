@@ -1,5 +1,5 @@
 #!/bin/bash
-#8Mi-ClashControl <Powered By Clash>
+#8Mi-ClashController <Powered By Clash>
 export http_proxy=
 export https_proxy=
 export ftp_proxy=
