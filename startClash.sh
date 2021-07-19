@@ -12,5 +12,5 @@ tmux send-keys -t clash:set_proxy 'echo -e "#!/bin/bash\nexport http_proxy=\"htt
 tmux send-keys -t clash:set_proxy 'echo -e "#!/bin/sh\nif [ -z \$(cat ~/.bashrc|grep env_proxy.sh) ]\nthen\n    echo \"sh ~/env_proxy.sh\" >> ~/.bashrc\nelse\n    echo \"true\"\nfi"> set_env_proxy.sh' Enter
 tmux send-keys -t clash:set_proxy 'sh set_env_proxy.sh' Enter
 tmux send-keys -t clash:set_proxy 'rm set_env_proxy.sh' Enter
-tmux send-keys -t clash:set_proxy 'sh set_gnone_proxy.sh' Enter
+tmux send-keys -t clash:set_proxy 'sh set_gnome_proxy.sh' Enter
 sh setClash.sh
