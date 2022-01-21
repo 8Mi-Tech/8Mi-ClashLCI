@@ -19,7 +19,7 @@ bmi_clashReloadHelp(){
         - UI界面: bmiclash reload ui '
 }
 bmi_clash_getConfig(){
-    wget --show-progress --progress=bar:force -O config.yaml "$(grep "sub_link=" clash_settings.config|sed 's/sub_link=//g')" 2>&1| tail -f -n +8
+    wget -O config.yaml "$(grep "sub_link=" clash_settings.config|sed 's/sub_link=//g')" > /dev/null
     bmi_clash_get_failed_count=0
     if [ 0 -ne $? ]
     then
@@ -66,7 +66,6 @@ bmi_startClash(){
     tmux new-window -t clash -n setting
     tmux send-keys -t clash:setting '#8Mi-ClashControl<Powered By Clash>' Enter
     bmi_reloadClashUI
-    echo "[8Mi-ClashController] Clash主程序以及界面程序加载完毕(也许是)"
     #echo '#!/bin/bash
     #export http_proxy="http://127.0.0.1:7890"
     #export https_proxy=$http_proxy
@@ -83,21 +82,44 @@ bmi_startClash(){
     echo "[8Mi-ClashController] 系统代理参数设置成功"
 }
 bmi_reloadClashConfig(){
-    echo "[8Mi-ClashController] 开始获取订阅配置文件中 ( 若显示进度条并且提示100%则提示获取成功 ) "
-    bmi_clash_getConfig
-    blank=0
-    bmi_clash_addConfig "mixed-port" "7890"
-    bmi_clash_addConfig "allow-lan" "false"
-    bmi_clash_addConfig "mode" "Rule"
-    bmi_clash_addConfig "log-level" "info"
-    bmi_clash_addConfig "external-controller" "127.0.0.1:9090"
-    echo "[8Mi-ClashController] 设置完毕,正在加载(或重载)Clash主程序"
-    tmux send-keys -t clash:core C-c './clash -d ./' Enter
+    echo "[8Mi-ClashController] 请稍等,正在检测"
+    tmux ls > /dev/null
+    if [ $? == 0 ]
+    then
+        tmux ls | grep "clash: " > /dev/null
+        if [ $? == 0 ]
+        then
+        echo "[8Mi-ClashController] 开始获取订阅配置文件中 ( 若显示进度条并且提示100%则提示获取成功 ) "
+        bmi_clash_getConfig
+        blank=0
+        bmi_clash_addConfig "mixed-port" "7890"
+        bmi_clash_addConfig "allow-lan" "false"
+        bmi_clash_addConfig "mode" "Rule"
+        bmi_clash_addConfig "log-level" "info"
+        bmi_clash_addConfig "external-controller" "127.0.0.1:9090"
+        echo "[8Mi-ClashController] 设置完毕,正在加载(或重载)Clash主程序"
+        tmux send-keys -t clash:core C-c './clash -d ./' Enter
+        echo "[8Mi-ClashController] Clash主程序以及界面程序加载完毕(也许是)"
+        exit
+        fi
+    fi
+    echo "[8Mi-ClashController] Clash未加载,操作无效"
 }
 bmi_reloadClashUI(){
-    echo "[8Mi-ClashController] 正在加载(或重载)Clash界面程序"
-    tmux send-keys -t clash:setting C-c 'browser -enable-gpu-rasterization --disable-pings --media-router=0 --enable-remote-extensions --load-extension= --window-size=1280,720 --app='$(grep "clash_dashboard=" clash_settings.config|sed 's/clash_dashboard=//g') Enter
-    echo "[8Mi-ClashController] Clash界面程序加载完毕(或许是)"
+    echo "[8Mi-ClashController] 请稍等,正在检测"
+    tmux ls > /dev/null
+    if [ $? == 0 ]
+    then
+        tmux ls | grep "clash: " > /dev/null
+        if [ $? == 0 ]
+        then
+        echo "[8Mi-ClashController] 正在加载(或重载)Clash界面程序"
+        tmux send-keys -t clash:setting C-c 'browser -enable-gpu-rasterization --disable-pings --media-router=0 --enable-remote-extensions --load-extension= --window-size=1280,720 --app='$(grep "clash_dashboard=" clash_settings.config|sed 's/clash_dashboard=//g') Enter
+        echo "[8Mi-ClashController] Clash界面程序加载完毕(或许是)"
+        exit
+        fi
+    fi
+    echo "[8Mi-ClashController] Clash未加载,操作无效"
 }
 bmi_stopClash(){
     echo "[8Mi-ClashController] 正在停止Clash主程序以及界面程序"
