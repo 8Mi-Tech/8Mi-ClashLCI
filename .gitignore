@@ -1,2 +1,4 @@
 config.yaml
 clash_settings.config
+Country.mmdb
+.cache
