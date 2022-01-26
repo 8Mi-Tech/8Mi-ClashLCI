@@ -33,8 +33,8 @@ bmi_clashIsRunning(){
 }
 
 bmi_clash_getConfig(){
-    wget -O config.yaml "$(grep "sub_link=" clash_settings.config|sed 's/sub_link=//g')" > /dev/null
     bmi_clash_get_failed_count=0
+    wget -O config.yaml "$(grep "sub_link=" clash_settings.config|sed 's/sub_link=//g')" > /dev/null
     if [ 0 -ne $? ]
     then
         if [ $bmi_clash_get_failed_count == 0 ]
