@@ -8,3 +8,5 @@ clash_dashboard=
 #订阅地址 开头需包含http或者https
 sub_link=
 
+#下载器类型，可选项 wget curl axel 需要自己的发行版有对应指令
+dl_engine=axel

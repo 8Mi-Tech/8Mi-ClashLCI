@@ -7,13 +7,13 @@ export https_proxy=
 export ftp_proxy=
 
 # custom command
-bmi_clashHelp(){
+bmi_clashHelp() {
     echo "当前运行状态"bmi_clashIsRunning
     echo '[8Mi-ClashController] 未知的指令 不过可以看看如下帮助
     用法: bmiclash [start|stop|reload]'
 }
 
-bmi_clashReloadHelp(){
+bmi_clashReloadHelp() {
     echo '[8Mi-ClashController] 重载指令帮助
     用法: bmiclash reload [config|ui]
     重载指令详细讲解:
@@ -21,23 +21,29 @@ bmi_clashReloadHelp(){
         - UI界面: bmiclash reload ui '
 }
 
-bmi_clashIsRunning(){
-    tmux_result=`tmux ls`
-    echo $tmux_result | grep "clash: " > /dev/null
-        if [ $? == 0 ]
-        then
-            echo 1
-        else
-            echo 0
-        fi
+bmi_clashIsRunning() {
+    tmux_result=$(tmux ls)
+    echo $tmux_result | grep "clash: " >/dev/null
+    if [ $? == 0 ]; then
+        echo 1
+    else
+        echo 0
+    fi
 }
 
-bmi_clash_getConfig(){
-    wget -O config.yaml "$(grep "sub_link=" clash_settings.config|sed 's/sub_link=//g')" > /dev/null
-    if [ 0 -ne $? ]
-    then
-        if [ $bmi_clash_get_failed_count == 0 ]
-        then
+bmi_clash_getConfig() {   
+    case "$(bmi_clash_getControlConfig dl_engine)" in
+    "axel")
+        axel -a -o config.yaml "$(bmi_clash_getControlConfig sub_link)"
+        ;;
+    "wget")
+        wget --show-progress --progress=bar:force -O config.yaml "$(grep "sub_link=" clash_settings.config | sed '/#sub_link/d' |sed 's/sub_link=//g')" 2>&2 | tail -f -n 4
+        ;;
+    *)
+        echo "[8Mi-ClashController] 下载引擎未设置,请到 clash_settings.config 内设置 dl_engine=[axel|wget|*curl]"
+    esac
+    if [ 0 -ne $? ]; then
+        if [ $bmi_clash_get_failed_count == 0 ]; then
             echo "[8Mi-ClashController] 获取失败,正在重试(直到提示成功即可)"
         fi
         bmi_clash_get_failed_count=$(expr $bmi_clash_get_failed_count + 1)
@@ -49,23 +55,20 @@ bmi_clash_getConfig(){
     fi
 }
 
-bmi_clash_addConfig(){
-    if  [ $(cat ./config.yaml | grep $1) -z "" ]
-    then
-        if  [ $blank == 0 ]
-        then
-            echo -e "\n"$1": "$2 >> ./config.yaml
+bmi_clash_addConfig() {
+    if [ $(grep $1 config.yaml) -z "" ]; then
+        if [ $blank == 0 ]; then
+            echo -e "\n"$1": "$2 >>./config.yaml
             blank=1
         else
-            echo $1": "$2 >> ./config.yaml
+            echo $1": "$2 >>./config.yaml
         fi
         echo "[8Mi-ClashController]  设置参数"\"$1\""为"\"$2\"
     fi
 }
 
-bmi_startClash(){
-    if [ $(bmi_clashIsRunning) == 1 ]
-        then
+bmi_startClash() {
+    if [ $(bmi_clashIsRunning) == 1 ]; then
         echo "[8Mi-ClashController] Clash已加载,若需要重载配置,请输入 \" bmiclash reload config \""
         exit
     fi
@@ -92,9 +95,8 @@ bmi_startClash(){
     echo "[8Mi-ClashController] 系统代理参数设置成功"
 }
 
-bmi_reloadClashConfig(){
-    if [ $(bmi_clashIsRunning) == 0 ]
-        then
+bmi_reloadClashConfig() {
+    if [ $(bmi_clashIsRunning) == 0 ]; then
         echo "[8Mi-ClashController] Clash未加载,无效操作"
         exit
     fi
@@ -112,20 +114,18 @@ bmi_reloadClashConfig(){
     echo "[8Mi-ClashController] Clash主程序以及界面程序加载完毕(也许是)"
 }
 
-bmi_reloadClashUI(){
-    if [ $(bmi_clashIsRunning) == 0 ]
-        then
+bmi_reloadClashUI() {
+    if [ $(bmi_clashIsRunning) == 0 ]; then
         echo "[8Mi-ClashController] Clash未加载,无效操作"
         exit
     fi
     echo "[8Mi-ClashController] 正在加载(或重载)Clash界面程序"
-    tmux send-keys -t clash:setting C-c 'browser -enable-gpu-rasterization --disable-pings --media-router=0 --enable-remote-extensions --load-extension= --window-size=1280,720 --app='$(grep "clash_dashboard=" clash_settings.config|sed 's/clash_dashboard=//g') Enter
+    tmux send-keys -t clash:setting C-c 'browser -enable-gpu-rasterization --disable-pings --media-router=0 --enable-remote-extensions --load-extension= --window-size=1280,720 --app='$(grep "clash_dashboard=" clash_settings.config | sed 's/clash_dashboard=//g') Enter
     echo "[8Mi-ClashController] Clash界面程序加载完毕(或许是)"
 }
 
-bmi_stopClash(){
-    if [ $(bmi_clashIsRunning) == 0 ]
-        then
+bmi_stopClash() {
+    if [ $(bmi_clashIsRunning) == 0 ]; then
         echo "[8Mi-ClashController] Clash已停止"
         exit
     fi
@@ -135,28 +135,31 @@ bmi_stopClash(){
     echo "[8Mi-ClashController] 停止完毕"
 }
 
+bmi_clash_getControlConfig(){
+    grep $1"=" clash_settings.config | sed '/#'$1'/d' | sed 's/'$1'=//g'
+}
 # run area
 case "$1" in
-    "start")
-        bmi_startClash
+"start")
+    bmi_startClash
+    ;;
+"stop")
+    bmi_stopClash
+    ;;
+"reload")
+    case "$2" in
+    "config")
+        bmi_reloadClashConfig
         ;;
-    "stop")
-        bmi_stopClash
-        ;;
-    "reload")
-        case "$2" in
-            "config")
-                bmi_reloadClashConfig
-                ;;
-            "ui")
-                bmi_reloadClashUI
-                ;;
-            *)
-                bmi_clashReloadHelp
-                ;;
-        esac
+    "ui")
+        bmi_reloadClashUI
         ;;
     *)
-        bmi_clashHelp
+        bmi_clashReloadHelp
         ;;
+    esac
+    ;;
+*)
+    bmi_clashHelp
+    ;;
 esac
