@@ -33,7 +33,6 @@ bmi_clashIsRunning(){
 }
 
 bmi_clash_getConfig(){
-    bmi_clash_get_failed_count=0
     wget -O config.yaml "$(grep "sub_link=" clash_settings.config|sed 's/sub_link=//g')" > /dev/null
     if [ 0 -ne $? ]
     then
@@ -41,9 +40,9 @@ bmi_clash_getConfig(){
         then
             echo "[8Mi-ClashController] 获取失败,正在重试(直到提示成功即可)"
         fi
-            bmi_clash_get_failed_count=$(expr $bmi_clash_get_failed_count + 1)
-            echo $bmi_clash_get_failed_count
-            bmi_clash_getConfig
+        bmi_clash_get_failed_count=$(expr $bmi_clash_get_failed_count + 1)
+        echo $bmi_clash_get_failed_count
+        bmi_clash_getConfig
     else
         bmi_clash_get_failed_count=0
         echo "[8Mi-ClashController] 获取成功,正在检查配置文件"
@@ -72,6 +71,7 @@ bmi_startClash(){
     fi
     echo "[8Mi-ClashController] 正在加载Clash中,请稍等"
     tmux new-session -s clash -n core -d
+    bmi_clash_get_failed_count=0
     bmi_reloadClashConfig
     tmux new-window -t clash -n setting
     tmux send-keys -t clash:setting '#8Mi-ClashControl<Powered By Clash>' Enter
@@ -99,6 +99,7 @@ bmi_reloadClashConfig(){
         exit
     fi
     echo "[8Mi-ClashController] 开始获取订阅配置文件中 ( 若显示进度条并且提示100%则提示获取成功 ) "
+    bmi_clash_get_failed_count=0
     bmi_clash_getConfig
     blank=0
     bmi_clash_addConfig "mixed-port" "7890"
