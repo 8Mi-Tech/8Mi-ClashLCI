@@ -161,8 +161,9 @@ bmi_clash_downloadBinary(){
         bmi_clash_downloadBinary_URL=$(grep "linux-amd64" dl_list)
         ;;
     esac
-    wget -O clash.gz $bmi_clash_downloadBinary_URL
-    gunzip clash.gz
+    bmi_clash_downloadBinary_URL=$(echo $bmi_clash_downloadBinary_URL|sed 's#https://github.com##g')
+    wget -O clash.gz "https://download.fastgit.org"$bmi_clash_downloadBinary_URL
+    gunzip -f clash.gz
     rm ./dl_list
 }
 # run area
