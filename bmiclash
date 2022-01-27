@@ -8,7 +8,7 @@ export ftp_proxy=
 
 # custom command
 bmi_clashHelp() {
-    echo "当前运行状态"$(bmi_clashIsRunning)
+    echo "[8Mi-ClashController] 当前运行状态" $(bmi_clashIsRunning_bool)
     echo '[8Mi-ClashController] 未知的指令 不过可以看看如下帮助
     用法: bmiclash [start|stop|reload]'
 }
@@ -28,6 +28,15 @@ bmi_clashIsRunning() {
         echo 1
     else
         echo 0
+    fi
+}
+bmi_clashIsRunning_bool() {
+    tmux_result=$(tmux ls)
+    echo $tmux_result | grep "clash: " >/dev/null
+    if [ $? == 0 ]; then
+        echo true
+    else
+        echo false
     fi
 }
 
