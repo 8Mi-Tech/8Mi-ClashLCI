@@ -18,7 +18,7 @@ bmi_clashReloadHelp() {
     用法: bmiclash reload [config|ui]
     重载指令详细讲解:
         - 配置文件: bmiclash reload config
-        - UI界面: bmiclash reload ui '
+       - UI界面: bmiclash reload ui '
 }
 
 bmi_clashIsRunning() {
@@ -40,16 +40,16 @@ bmi_clashIsRunning_bool() {
     fi
 }
 
-bmi_clash_getConfig() {   
+bmi_clash_getConfig() {
     case "$(bmi_clash_getControlConfig dl_engine)" in
-    "axel")
-        axel -a -o config.yaml "$(bmi_clash_getControlConfig sub_link)"
+        "axel")
+            axel -a -o config.yaml "$(bmi_clash_getControlConfig sub_link)"
         ;;
-    "wget")
-        wget --show-progress --progress=bar:force -O config.yaml "$(grep "sub_link=" clash_settings.config | sed '/#sub_link/d' |sed 's/sub_link=//g')" 2>&2 | tail -f -n 4
+        "wget")
+            wget --show-progress --progress=bar:force -O config.yaml "$(bmi_clash_getControlConfig sub_link)" 2>&2 | tail -f -n 4
         ;;
-    *)
-        echo "[8Mi-ClashController] 下载引擎未设置,请到 clash_settings.config 内设置 dl_engine=[axel|wget|*curl]"
+        *)
+            echo "[8Mi-ClashController] 下载引擎未设置,请到 clash_settings.config 内设置 dl_engine=[axel|wget|*curl]"
     esac
     if [ 0 -ne $? ]; then
         if [ $bmi_clash_get_failed_count == 0 ]; then
@@ -147,28 +147,50 @@ bmi_stopClash() {
 bmi_clash_getControlConfig(){
     grep $1"=" clash_settings.config | sed '/#'$1'/d' | sed 's/'$1'=//g'
 }
-# run area
-case "$1" in
-"start")
-    bmi_startClash
-    ;;
-"stop")
-    bmi_stopClash
-    ;;
-"reload")
-    case "$2" in
-    "config")
-        bmi_reloadClashConfig
-        ;;
-    "ui")
-        bmi_reloadClashUI
-        ;;
-    *)
-        bmi_clashReloadHelp
+
+bmi_clash_downloadBinary(){
+    rm ./dl_list
+    bmi_clash_downloadBinary_listFull=$(wget -O - https://api.github.com/repos/Dreamacro/clash/releases | jq '.[0].assets')
+    bmi_clash_downloadBinary_listCount=$(echo $bmi_clash_downloadBinary_listFull | jq '. | length')
+    for ((i=0; i<$bmi_clash_downloadBinary_listCount; i++))
+    do
+        echo $bmi_clash_downloadBinary_listFull | jq -r '.['$i'].browser_download_url' >> dl_list
+    done
+    case "$(arch)" in
+        "x86_64")
+        bmi_clash_downloadBinary_URL=$(grep "linux-amd64" dl_list)
         ;;
     esac
+    wget -O clash.gz $bmi_clash_downloadBinary_URL
+    gunzip clash.gz
+    rm ./dl_list
+    rm ./clash.gz
+}
+# run area
+case "$1" in
+    "install")
+        bmi_clash_downloadBinary
     ;;
-*)
-    bmi_clashHelp
+    "start")
+        bmi_startClash
+    ;;
+    "stop")
+        bmi_stopClash
+    ;;
+    "reload")
+        case "$2" in
+            "config")
+                bmi_reloadClashConfig
+            ;;
+            "ui")
+                bmi_reloadClashUI
+            ;;
+            *)
+                bmi_clashReloadHelp
+            ;;
+        esac
+    ;;
+    *)
+        bmi_clashHelp
     ;;
 esac
