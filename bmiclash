@@ -164,7 +164,6 @@ bmi_clash_downloadBinary(){
     wget -O clash.gz $bmi_clash_downloadBinary_URL
     gunzip clash.gz
     rm ./dl_list
-    rm ./clash.gz
 }
 # run area
 case "$1" in
