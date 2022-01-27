@@ -8,7 +8,7 @@ export ftp_proxy=
 
 # custom command
 bmi_clashHelp() {
-    echo "当前运行状态"bmi_clashIsRunning
+    echo "当前运行状态"$(bmi_clashIsRunning)
     echo '[8Mi-ClashController] 未知的指令 不过可以看看如下帮助
     用法: bmiclash [start|stop|reload]'
 }
