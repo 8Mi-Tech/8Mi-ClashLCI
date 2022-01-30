@@ -128,6 +128,12 @@ bmi_startClash() {
     bmi_echo "系统代理参数设置成功"
 }
 
+bmi_reloadClash(){
+    bmi_echo "正在加载(或重载)Clash主程序"
+    tmux send-keys -t clash:core C-c './clash -d ./' Enter
+    bmi_echo "Clash主程序以及界面程序加载完毕(也许是)"
+}
+
 bmi_reloadClashConfig() {
     if [ $(bmi_clashIsRunning) == 0 ]; then
         bmi_echo "Clash未加载,无效操作"
@@ -142,9 +148,8 @@ bmi_reloadClashConfig() {
     bmi_clash_addConfig "mode" "Rule"
     bmi_clash_addConfig "log-level" "info"
     bmi_clash_addConfig "external-controller" "127.0.0.1:9090"
-    bmi_echo "设置完毕,正在加载(或重载)Clash主程序"
-    tmux send-keys -t clash:core C-c './clash -d ./' Enter
-    bmi_echo "Clash主程序以及界面程序加载完毕(也许是)"
+    bmi_echo "设置完毕"
+    bmi_reloadClash
 }
 
 bmi_reloadClashUI() {
@@ -247,6 +252,9 @@ case "$1" in
             ;;
             "ui")
                 bmi_reloadClashUI
+            ;;
+            "")
+                bmi_reloadClash
             ;;
             *)
                 bmi_clashReloadHelp
