@@ -195,15 +195,15 @@ bmi_clash_upgradeBinary(){
         rm "./dl_list"
     fi
     bmi_echo "正在检查主控程序更新"
-    bmi_clash_upgradeBinary_listFull=$(bmi_downloadHub https://api.github.com/repos/Dreamacro/clash/releases - curl | jq '.[0]')
-    if [ $(bmi_clash_getControlConfig binary_version)? == $(echo $bmi_clash_upgradeBinary_listFull | jq '.tag_name')? ]; then
+    bmi_clash_upgradeBinary_listFull=$(bmi_downloadHub https://api.github.com/repos/Dreamacro/clash/releases - curl | jq -r '.[0]')
+    if [ $(bmi_clash_getControlConfig binary_version)? == $(echo $bmi_clash_upgradeBinary_listFull | jq -r '.tag_name')? ]; then
         bmi_echo "当前版本为最新,无需再次更新."
         echo "" 1>&2
         exit
     fi
-    bmi_clash_upgradeBinary_listAssets=$(echo $bmi_clash_upgradeBinary_listFull | jq '.assets')
+    bmi_clash_upgradeBinary_listAssets=$(echo $bmi_clash_upgradeBinary_listFull | jq -r '.assets')
     bmi_clash_upgradeBinary_listCount=0
-    bmi_clash_upgradeBinary_listCount=$(echo $bmi_clash_upgradeBinary_listAssets | jq '. | length')
+    bmi_clash_upgradeBinary_listCount=$(echo $bmi_clash_upgradeBinary_listAssets | jq -r '. | length')
     for ((i=0; i<$bmi_clash_upgradeBinary_listCount; i++))
     do
         echo $bmi_clash_upgradeBinary_listAssets | jq -r '.['$i'].browser_download_url' | grep "linux">> dl_list
@@ -218,7 +218,7 @@ bmi_clash_upgradeBinary(){
     bmi_downloadHub "https://download.fastgit.org"$bmi_clash_upgradeBinary_URL clash.gz
     gunzip -f clash.gz
     chmod +x clash
-    bmi_clash_setControlConfig binary_version $(echo $bmi_clash_upgradeBinary_listFull | jq '.tag_name')
+    bmi_clash_setControlConfig binary_version $(echo $bmi_clash_upgradeBinary_listFull | jq -r '.tag_name')
 }
 
 bmi_clash_installBinary(){

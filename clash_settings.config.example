@@ -10,3 +10,6 @@ sub_link=
 
 #下载器类型，可选项 wget curl axel 需要自己的发行版有对应指令
 dl_engine=axel
+
+#主控版本号(禁止手动设置)
+binary_version=
