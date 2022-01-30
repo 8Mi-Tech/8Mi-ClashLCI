@@ -1,7 +1,7 @@
 # 8Mi-ClashController
 
 1. 安装前准备
-	- 通用发行版 (需要有 tmux 包)
+	- 通用发行版 (需要有 `tmux` `git` 包)
 	- 若是Debian及衍生发行版 (例如Deepin/UOS/UbuntuKylin)
 `sudo apt install git tmux`
 	- 并安装控制程序 `git clone https://github.com/8Mi-Tech/8Mi-ClashController`
