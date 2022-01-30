@@ -173,7 +173,7 @@ bmi_clash_getControlConfig(){
 }
 
 bmi_clash_setControlConfig(){
-    if [ $(grep $1 clash_settings.config) ]; then
+    if [ $(grep $1"=" clash_settings.config) ]; then
         if [ $(echo $(bmi_clash_getControlConfig $1) | grep "/" ) ]; then
             sed -i "s#"$1"="$(bmi_clash_getControlConfig $1)"#"$1"="$2"#g" clash_settings.config
         else
@@ -196,7 +196,7 @@ bmi_clash_upgradeBinary(){
         echo "" 1>&2
         exit
     fi
-    bmi_clash_upgradeBinary_listAssets=$($bmi_clash_upgradeBinary_listFull | jq '.assets')
+    bmi_clash_upgradeBinary_listAssets=$(echo $bmi_clash_upgradeBinary_listFull | jq '.assets')
     bmi_clash_upgradeBinary_listCount=0
     bmi_clash_upgradeBinary_listCount=$(echo $bmi_clash_upgradeBinary_listAssets | jq '. | length')
     for ((i=0; i<$bmi_clash_upgradeBinary_listCount; i++))
