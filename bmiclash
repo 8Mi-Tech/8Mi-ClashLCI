@@ -52,7 +52,7 @@ bmi_clashReloadHelp() {
     用法: bmiclash reload [config|ui]
     重载指令详细讲解:
         - 配置文件: bmiclash reload config
-       - UI界面: bmiclash reload ui '
+        - UI界面: bmiclash reload ui '
 }
 
 bmi_clashIsRunning() {
