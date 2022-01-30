@@ -4,7 +4,9 @@
 	- 通用发行版 (需要有 `tmux` `git` 包)
 	- 若是Debian及衍生发行版 (例如Deepin/UOS/UbuntuKylin)
 `sudo apt install git tmux`
-	- 并安装控制程序 `git clone https://github.com/8Mi-Tech/8Mi-ClashController`
+	- 并安装控制程序(分渠道,根据频道更新,建议使用国内的Git)
+		- GitHub`git clone https://github.com/8Mi-Tech/8Mi-ClashController`
+		- Gitee `https://gitee.com/BMi-Tech/BMi-ClashController.git`
 2. 使用前准备
 	- 复制`clash_settings.config.example`在原路径内并改名成`clash_settings.config`
 	- 编辑`clash_settings.config`内的参数
