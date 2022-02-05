@@ -1,8 +1,6 @@
-#Clash Dashboard
-#https://clash.razord.top/
-#Yet Another Clash Dashboard
-#http://yacd.haishan.me/
-#以下设置地址 开头需要包含http或者https
+#Clash Dashboard #https://clash.razord.top/
+#Yet Another Clash Dashboard #http://yacd.haishan.me/
+#以下设置页面地址 开头需要包含http或者https
 clash_dashboard=
 
 #订阅地址 开头需包含http或者https
