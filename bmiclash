@@ -4,7 +4,7 @@
 # custom command
 
 # 统一请求选择器 取自配置项 dl_engine
-# bmi_downloadHub "下载地址" “文件名称 或 -” “下载引擎(可选)”
+# bmi_downloadHub "下载地址" “文件名称 或 -” “下载引擎(可选)” "重试 boll"
 bmi_downloadHub(){
     if [ $3 ]; then 
         bmi_downloadHub_EngineID=$3
@@ -28,7 +28,14 @@ bmi_downloadHub(){
         *)
             bmi_echo "下载引擎未设置,请到 clash_settings.config 内设置 dl_engine=[axel|wget|*curl]"
     esac
-
+    if [ $4 ]; then 
+        bmi_downloadHub_Retry=$4
+    else
+        bmi_downloadHub_Retry=false
+    fi
+    if [ $bmi_downloadHub_Retry == true ] | [ $bmi_downloadHubError != 0 ]; then
+    bmi_downloadHub $1 $2 $3 $4
+    fi
 }
 
 bmi_echo(){
@@ -80,7 +87,7 @@ bmi_clash_getConfig() {
         if [ $bmi_clash_get_failed_count == 0 ]; then
             bmi_echo "获取失败,正在重试(直到提示成功即可)"
         fi
-        bmi_clash_get_failed_count++
+        bmi_clash_get_failed_count=$(expr $bmi_clash_get_failed_count + 1)
         bmi_clash_getConfig
     else
         bmi_clash_get_failed_count=0
@@ -101,6 +108,7 @@ bmi_clash_addConfig() {
 }
 
 bmi_startClash() {
+    bmi_disableProxy
     if [ $(bmi_clashIsRunning) == 1 ]; then
         bmi_echo "Clash已加载,若需要重载配置,请输入 \" bmiclash reload config \""
         exit
@@ -140,6 +148,7 @@ bmi_reloadClashConfig() {
         exit
     fi
     bmi_echo "开始获取订阅配置文件中 ( 若显示进度条并且提示100%则提示获取成功 ) "
+    bmi_disableProxy
     bmi_clash_get_failed_count=0
     bmi_clash_getConfig
     blank=0
@@ -195,12 +204,33 @@ bmi_clash_upgradeBinary(){
         rm "./dl_list"
     fi
     bmi_echo "正在检查主控程序更新"
-    bmi_clash_upgradeBinary_listFull=$(bmi_downloadHub https://api.github.com/repos/Dreamacro/clash/releases - curl | jq -r '.[0]')
-    if [ $(bmi_clash_getControlConfig binary_version)? == $(echo $bmi_clash_upgradeBinary_listFull | jq -r '.tag_name')? ]; then
-        bmi_echo "当前版本为最新,无需再次更新."
-        echo "" 1>&2
-        exit
-    fi
+    bmi_echo "二进制更新频道 "$(bmi_clash_getControlConfig binary_update_channel)
+    case "$(bmi_clash_getControlConfig binary_update_channel)" in
+        "premium")
+            bmi_clash_upgradeBinary_JSONFull=$(bmi_downloadHub https://api.github.com/repos/Dreamacro/clash/releases - curl true)
+            bmi_clash_upgradeBinary_JSONCount=$(echo $bmi_clash_upgradeBinary_JSONFull | jq -r '. | length')
+            for ((i=0; i<$bmi_clash_upgradeBinary_JSONCount; i++))
+            do
+                if [ $(echo $bmi_clash_upgradeBinary_JSONFull | jq -r ".[$i].tag_name") == "premium" ]; then
+                    bmi_clash_upgradeBinary_listFull=$(echo $bmi_clash_upgradeBinary_JSONFull | jq -r ".[$i]")
+                    break
+                fi
+            done
+            if [ $(bmi_clash_getControlConfig binary_version) == "$(echo $bmi_clash_upgradeBinary_listFull | jq -r '.name' | awk '{print $2}')" ]; then
+               bmi_echo "当前版本为最新,无需再次更新."
+                echo "" 1>&2
+                exit
+            fi
+        ;;
+        "stable")
+            bmi_clash_upgradeBinary_listFull=$(bmi_downloadHub https://api.github.com/repos/Dreamacro/clash/releases - curl | jq -r '.[0]')
+            if [ $(bmi_clash_getControlConfig binary_version) == $(echo $bmi_clash_upgradeBinary_listFull | jq -r '.tag_name') ]; then
+                bmi_echo "当前版本为最新,无需再次更新."
+                echo "" 1>&2
+                exit
+            fi
+        ;;
+    esac
     bmi_clash_upgradeBinary_listAssets=$(echo $bmi_clash_upgradeBinary_listFull | jq -r '.assets')
     bmi_clash_upgradeBinary_listCount=0
     bmi_clash_upgradeBinary_listCount=$(echo $bmi_clash_upgradeBinary_listAssets | jq -r '. | length')
@@ -214,11 +244,20 @@ bmi_clash_upgradeBinary(){
         ;;
     esac
     rm ./dl_list
-    bmi_clash_upgradeBinary_URL=$(echo $bmi_clash_upgradeBinary_URL | sed 's#https://github.com##g')
-    bmi_downloadHub "https://download.fastgit.org"$bmi_clash_upgradeBinary_URL clash.gz
+   #bmi_clash_upgradeBinary_URL=$(echo $bmi_clash_upgradeBinary_URL | sed 's#https://github.com##g')
+   #bmi_downloadHub "https://download.fastgit.org"$bmi_clash_upgradeBinary_URL clash.gz
+   bmi_downloadHub $bmi_clash_upgradeBinary_URL clash.gz
     gunzip -f clash.gz
     chmod +x clash
-    bmi_clash_setControlConfig binary_version $(echo $bmi_clash_upgradeBinary_listFull | jq -r '.tag_name')
+    case "$(bmi_clash_getControlConfig binary_update_channel)" in
+        "premium")
+            bmi_clash_setControlConfig binary_version $(echo $bmi_clash_upgradeBinary_listFull | jq -r '.name' | awk '{print $2}')
+        ;;
+        "stable")
+            bmi_clash_setControlConfig binary_version $(echo $bmi_clash_upgradeBinary_listFull | jq -r '.tag_name')
+        ;;
+    esac
+    
 }
 
 bmi_clash_installBinary(){
