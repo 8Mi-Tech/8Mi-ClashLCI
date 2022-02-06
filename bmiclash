@@ -167,7 +167,8 @@ bmi_reloadClashUI() {
         exit
     fi
     bmi_echo "正在加载(或重载)Clash界面程序"
-    tmux send-keys -t clash:setting C-c 'browser -enable-gpu-rasterization --disable-pings --media-router=0 --enable-remote-extensions --load-extension= --window-size=1280,720 --app='$(grep "clash_dashboard=" clash_settings.config | sed 's/clash_dashboard=//g') Enter
+    #tmux send-keys -t clash:setting C-c 'browser -enable-gpu-rasterization --disable-pings --media-router=0 --enable-remote-extensions --load-extension= --window-size=1280,720 --app='$(grep "clash_dashboard=" clash_settings.config | sed 's/clash_dashboard=//g') Enter
+    tmux send-keys -t clash:setting C-c './8Mi-ClashControllerUI'
     bmi_echo "Clash界面程序加载完毕(或许是)"
 }
 
