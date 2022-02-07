@@ -1,5 +1,5 @@
 #!/bin/bash
-#8Mi-ClashControl <Powered By Clash>
+#8Mi-ClashLCI <Powered By Clash>
 
 # custom command
 
@@ -39,7 +39,7 @@ bmi_downloadHub(){
 }
 
 bmi_echo(){
-    echo "[8Mi-ClashController] "$1
+    echo "[8Mi-ClashLCI] "$1
 }
 
 bmi_disableProxy(){
@@ -50,12 +50,12 @@ bmi_disableProxy(){
 
 bmi_clashHelp() {
     bmi_echo "当前运行状态" $(bmi_clashIsRunning_bool)
-    echo '[8Mi-ClashController] 未知的指令 不过可以看看如下帮助
-    用法: bmiclash [start|stop|reload]'
+    echo '[8Mi-ClashLCI] 未知的指令 不过可以看看如下帮助
+    用法: bmiclash [install|start|stop|reload]'
 }
 
 bmi_clashReloadHelp() {
-    echo '[8Mi-ClashController] 重载指令帮助
+    echo '[8Mi-ClashLCI] 重载指令帮助
     用法: bmiclash reload [config|ui]
     重载指令详细讲解:
         - 配置文件: bmiclash reload config
@@ -118,7 +118,7 @@ bmi_startClash() {
     bmi_clash_get_failed_count=0
     bmi_reloadClashConfig
     tmux new-window -t clash -n setting
-    tmux send-keys -t clash:setting '#8Mi-ClashControl<Powered By Clash>' Enter
+    tmux send-keys -t clash:setting '#8Mi-ClashLCI<Powered By Clash>' Enter
     bmi_reloadClashUI
     #echo '#!/bin/bash
     #export http_proxy="http://127.0.0.1:7890"
@@ -168,8 +168,8 @@ bmi_reloadClashUI() {
     fi
     bmi_echo "正在加载(或重载)Clash界面程序"
     #tmux send-keys -t clash:setting C-c 'browser -enable-gpu-rasterization --disable-pings --media-router=0 --enable-remote-extensions --load-extension= --window-size=1280,720 --app='$(grep "clash_dashboard=" clash_settings.config | sed 's/clash_dashboard=//g') Enter
-    chmod +x "./8Mi-ClashControllerUI"
-    tmux send-keys -t clash:setting C-c './8Mi-ClashControllerUI' Enter
+    chmod +x "./8Mi-ClashLUI"
+    tmux send-keys -t clash:setting C-c './8Mi-ClashLUI' Enter
     bmi_echo "Clash界面程序加载完毕(或许是)"
 }
 
