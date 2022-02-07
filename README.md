@@ -1,4 +1,4 @@
-# 8Mi-ClashController
+# 8Mi-ClashLCI
 
 1. 安装前准备
 	- 通用发行版 (需要有 `tmux` `git` 包)
