@@ -13,7 +13,7 @@ bmi_debugError(){
     bmi_echo "这都能错误啊，我裂开了"
     bmi_echo '执行错误的指令 '$1
     bmi_echo '执行错误的输出:'
-    echo $STDIN
+    cat /dev/stdin
     bmi_echo "前往 https://github.com/8Mi-Tech/8Mi-ClashLCI/issues 反馈并上传截图 以供方便处理"
     echo "*"
     exit 1
