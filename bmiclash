@@ -152,7 +152,7 @@ bmi_startClash() {
 
 bmi_reloadClash(){
     bmi_echo "正在加载(或重载)Clash主程序"
-    tmux send-keys -t clash:core C-c "./clash -d ./" Enter 2>&1 || bmi_debugError
+    tmux send-keys -t clash:core C-c "./clash -d ./" Enter 2>./console_error.tmp || bmi_debugError
     bmi_echo "Clash主程序以及界面程序加载完毕(也许是)"
 }
 
