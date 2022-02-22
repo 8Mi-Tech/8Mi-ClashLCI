@@ -10,7 +10,7 @@ bmi_debug(){
 }
 bmi_debugError(){
     echo "————————————————————————————————"
-    bmi_echo "完了~巴比Q了~完了完了~我丢~哇焯~这都能错误啊~我裂开了~"
+    bmi_echo "完了~巴比Q了~完了完了~我丢~哇焯~这都啥错误啊~我裂开了~"
     bmi_echo '执行错误的指令 '$1
     bmi_echo '执行错误的输出:'
     cat ./console_error.tmp
