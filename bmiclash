@@ -223,7 +223,9 @@ bmi_clash_upgradeBinary(){
         ;;
     esac
     if [ $(bmi_clash_getControlConfig binary_version) == $(echo $bmi_clash_upgradeBinary_listFull | jq -r '.tag_name') ] || [ $(bmi_clash_getControlConfig binary_version) == "$(echo $bmi_clash_upgradeBinary_listFull | jq -r '.name' | awk '{print $2}')" ]; then
-        bmi_echo "当前版本为最新,无需再次更新." && exit 1
+        if [ -e "./clash" ]; then
+            bmi_echo "当前版本为最新,无需再次更新." && exit 1
+        fi
     fi
     bmi_clash_upgradeBinary_listAssets=$(echo $bmi_clash_upgradeBinary_listFull | jq -r '.assets')
     bmi_clash_upgradeBinary_listCount=0
@@ -238,9 +240,9 @@ bmi_clash_upgradeBinary(){
         ;;
     esac
     rm ./dl_list
-   #bmi_clash_upgradeBinary_URL=$(echo $bmi_clash_upgradeBinary_URL | sed 's#https://github.com##g')
-   #bmi_downloadHub "https://download.fastgit.org"$bmi_clash_upgradeBinary_URL clash.gz
-   bmi_downloadHub $bmi_clash_upgradeBinary_URL clash.gz
+   bmi_clash_upgradeBinary_URL=$(echo $bmi_clash_upgradeBinary_URL | sed 's#https://github.com##g')
+   bmi_downloadHub $(bmi_clash_getControlConfig github_url)$bmi_clash_upgradeBinary_URL clash.gz
+   #bmi_downloadHub $bmi_clash_upgradeBinary_URL clash.gz
     gunzip -f clash.gz
     chmod +x clash
     case "$(bmi_clash_getControlConfig binary_update_channel)" in
@@ -305,6 +307,15 @@ case "$1" in
     "set")
     if [ $2 ]; then
     bmi_clash_setControlConfig $2 $3
+    else
+    echo '[8Mi-ClashLCI] 设置配置帮助
+    (参数标注双引号的说明指令内需要包含双引号)
+        订阅链接: ./bmiclash set sub_link "*" 
+        下载器类型: ./bmiclash set dl_engine [wget|curl|axel]
+        二进制文件更新频道: ./bmiclash set binary_update_channel [stable|premium]
+        GitHub镜像地址(结尾不要加斜杠): ./bmiclash set github_url "*"
+        (注:部分加速地址非专门为GitHub加速,请记得插入github.com 比如 https://github.do/https://github.com)'
+    exit 1
     fi
     ;;
     "upgrade")

@@ -15,3 +15,5 @@ binary_update_channel=premium
 #主控版本号(禁止手动设置)
 binary_version=
 
+#Github镜像地址 默认选项为https://github.com
+github_url=https://github.com

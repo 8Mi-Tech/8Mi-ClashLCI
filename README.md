@@ -15,6 +15,7 @@
 		- `dl_engine` 下载器引擎
 		- `clash_dashboard` 控制页地址
 		- `binary_update_channel` 默认为 premium 即可
+		- `github_url` 默认是`https://github.com` 结尾不要加斜杠
 	- 输入`./bmiclash install`以安装Clash主控程序 (更新日期:2021.01.28)
 3. 开始使用
 	- 在终端内输入`./bmiclash start` 启动clash
