@@ -5,18 +5,19 @@
 
 # 统一请求选择器 取自配置项 dl_engine
 # bmi_downloadHub "下载地址" “文件名称 或 -” “下载引擎(可选)” "重试 boll"
-bmi_debugError(){
-    $1 2>&1
-    if [ $? != 0 ]; then
-        echo "*"
-        bmi_echo "这都能错误啊，我裂开了"
-        bmi_echo '执行错误的指令 "'$1'"'
-        bmi_echo "前往 https://github.com/8Mi-Tech/8Mi-ClashLCI/issues 反馈并上传截图 以供方便处理"
-        echo "*"
-        exit 1
-    fi
+bmi_debug(){
+    $1 2>&1 || bmi_debugError $1
 }
-
+bmi_debugError(){
+    echo "*"
+    bmi_echo "这都能错误啊，我裂开了"
+    bmi_echo '执行错误的指令 '$1
+    bmi_echo '执行错误的输出:'
+    echo &2
+    bmi_echo "前往 https://github.com/8Mi-Tech/8Mi-ClashLCI/issues 反馈并上传截图 以供方便处理"
+    echo "*"
+    exit 1
+}
 bmi_downloadHub(){
     if [ $3 ]; then 
         bmi_downloadHub_EngineID=$3
@@ -150,7 +151,7 @@ bmi_startClash() {
 
 bmi_reloadClash(){
     bmi_echo "正在加载(或重载)Clash主程序"
-    bmi_debugError "tmux send-keys -t clash:core C-c './clash -d ./' Enter"
+    tmux send-keys -t clash:core C-c "./clash -d ./" Enter || bmi_debugError
     bmi_echo "Clash主程序以及界面程序加载完毕(也许是)"
 }
 
@@ -181,7 +182,7 @@ bmi_reloadClashUI() {
     bmi_echo "正在加载(或重载)Clash界面程序"
     #tmux send-keys -t clash:setting C-c 'browser -enable-gpu-rasterization --disable-pings --media-router=0 --enable-remote-extensions --load-extension= --window-size=1280,720 --app='$(grep "clash_dashboard=" clash_settings.config | sed 's/clash_dashboard=//g') Enter
     chmod +x "./8Mi-ClashLUI"
-    bmi_debugError "tmux send-keys -t clash:setting C-c './8Mi-ClashLUI' Enter"
+    tmux send-keys -t clash:setting C-c './8Mi-ClashLUI' Enter || bmi_debugError
     bmi_echo "Clash界面程序加载完毕(或许是)"
 }
 
