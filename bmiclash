@@ -214,25 +214,17 @@ bmi_clash_upgradeBinary(){
             for ((i=0; i<$bmi_clash_upgradeBinary_JSONCount; i++))
             do
                 if [ $(echo $bmi_clash_upgradeBinary_JSONFull | jq -r ".[$i].tag_name") == "premium" ]; then
-                    bmi_clash_upgradeBinary_listFull=$(echo $bmi_clash_upgradeBinary_JSONFull | jq -r ".[$i]")
-                    break
+                    bmi_clash_upgradeBinary_listFull=$(echo $bmi_clash_upgradeBinary_JSONFull | jq -r ".[$i]") && break
                 fi
             done
-            if [ $(bmi_clash_getControlConfig binary_version) == "$(echo $bmi_clash_upgradeBinary_listFull | jq -r '.name' | awk '{print $2}')" ]; then
-               bmi_echo "当前版本为最新,无需再次更新."
-                echo "" 1>&2
-                exit
-            fi
         ;;
         "stable")
             bmi_clash_upgradeBinary_listFull=$(bmi_downloadHub https://api.github.com/repos/Dreamacro/clash/releases - curl | jq -r '.[0]')
-            if [ $(bmi_clash_getControlConfig binary_version) == $(echo $bmi_clash_upgradeBinary_listFull | jq -r '.tag_name') ]; then
-                bmi_echo "当前版本为最新,无需再次更新."
-                echo "" 1>&2
-                exit
-            fi
         ;;
     esac
+    if [ $(bmi_clash_getControlConfig binary_version) == $(echo $bmi_clash_upgradeBinary_listFull | jq -r '.tag_name') ] || [ $(bmi_clash_getControlConfig binary_version) == "$(echo $bmi_clash_upgradeBinary_listFull | jq -r '.name' | awk '{print $2}')" ]; then
+        bmi_echo "当前版本为最新,无需再次更新." && exit 1
+    fi
     bmi_clash_upgradeBinary_listAssets=$(echo $bmi_clash_upgradeBinary_listFull | jq -r '.assets')
     bmi_clash_upgradeBinary_listCount=0
     bmi_clash_upgradeBinary_listCount=$(echo $bmi_clash_upgradeBinary_listAssets | jq -r '. | length')
@@ -264,18 +256,26 @@ bmi_clash_upgradeBinary(){
 
 bmi_clash_installBinary(){
     if [ -f "./clash" ]; then
-        bmi_echo "已经安装,请不要重复安装,如需升级,请输入 bmiclash upgrade"
-        exit
+        bmi_echo "已经安装,请不要重复安装,如需升级,请输入 bmiclash upgrade" && exit
     fi
     bmi_clash_upgradeBinary
 }
 
 bmi_clash_upgrade(){
     bmi_echo "检查控制器更新"
-    git pull 1>&1 2>&2 || bmi_echo "控制器更新失败,请检查网络..." | exit
+    git pull || bmi_echo "控制器更新失败,请检查网络..." | exit 1
     bmi_clash_upgradeBinary 1>&1 2>&2
 }
 # run area
+if ! [ -x "$(command -v git)" ]; then
+    bmi_echo "未安装 Git ,无法执行" && exit 1
+fi
+if ! [ -x "$(command -v tmux)" ]; then
+    bmi_echo "未安装 Tmux ,无法执行" && exit 1
+fi
+#if ! [ -x "$(command -v bmi-debug)" ]; then
+#    bmi_echo "未安装 ??? ,无法执行" && exit 1
+#fi
 case "$1" in
     "install")
         bmi_clash_installBinary
