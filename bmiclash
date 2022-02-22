@@ -49,7 +49,7 @@ bmi_disableProxy(){
 }
 
 bmi_clashHelp() {
-    bmi_echo "当前运行状态" $(bmi_clashIsRunning_bool)
+    bmi_echo "当前运行状态 "$(bmi_clashIsRunning_bool)
     echo '[8Mi-ClashLCI] 未知的指令 不过可以看看如下帮助
     用法: bmiclash [install|start|stop|reload]'
 }
@@ -63,7 +63,7 @@ bmi_clashReloadHelp() {
 }
 
 bmi_clashIsRunning() {
-    tmux_result=$(tmux ls)
+    tmux_result=$(tmux ls 2>&1)
     echo $tmux_result | grep "clash: " >/dev/null
     if [ $? == 0 ]; then
         echo 1
@@ -72,7 +72,7 @@ bmi_clashIsRunning() {
     fi
 }
 bmi_clashIsRunning_bool() {
-    tmux_result=$(tmux ls)
+    tmux_result=$(tmux ls 2>&1)
     echo $tmux_result | grep "clash: " >/dev/null
     if [ $? == 0 ]; then
         echo true
