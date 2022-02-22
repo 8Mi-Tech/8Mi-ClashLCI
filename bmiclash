@@ -6,7 +6,7 @@
 # 统一请求选择器 取自配置项 dl_engine
 # bmi_downloadHub "下载地址" “文件名称 或 -” “下载引擎(可选)” "重试 boll"
 bmi_debug(){
-    $1 2>&1 || bmi_debugError $1
+    $1 2>./console_error.tmp || bmi_debugError $1
 }
 bmi_debugError(){
     echo "————————————————————————————————"
@@ -124,8 +124,7 @@ bmi_clash_addConfig() {
 bmi_startClash() {
     bmi_disableProxy
     if [ $(bmi_clashIsRunning) == 1 ]; then
-        bmi_echo "Clash已加载,若需要重载配置,请输入 \" bmiclash reload config \""
-        exit
+        bmi_echo "Clash已加载,若需要重载配置,请输入 \" bmiclash reload config \"" & exit
     fi
     bmi_echo "正在加载Clash中,请稍等"
     tmux new-session -s clash -n core -d
@@ -151,6 +150,9 @@ bmi_startClash() {
 }
 
 bmi_reloadClash(){
+    if [ $(bmi_clashIsRunning) == 0 ]; then
+        bmi_echo "Clash未加载,无效操作" & exit 1
+    fi
     bmi_echo "正在加载(或重载)Clash主程序"
     tmux send-keys -t clash:core C-c "./clash -d ./" Enter 2>./console_error.tmp || bmi_debugError
     bmi_echo "Clash主程序以及界面程序加载完毕(也许是)"
@@ -158,8 +160,7 @@ bmi_reloadClash(){
 
 bmi_reloadClashConfig() {
     if [ $(bmi_clashIsRunning) == 0 ]; then
-        bmi_echo "Clash未加载,无效操作"
-        exit
+        bmi_echo "Clash未加载,无效操作" & exit 1
     fi
     bmi_echo "开始获取订阅配置文件中 ( 若显示进度条并且提示100%则提示获取成功 ) "
     bmi_disableProxy
@@ -177,8 +178,7 @@ bmi_reloadClashConfig() {
 
 bmi_reloadClashUI() {
     if [ $(bmi_clashIsRunning) == 0 ]; then
-        bmi_echo "Clash未加载,无效操作"
-        exit
+        bmi_echo "Clash未加载,无效操作" & exit 1
     fi
     bmi_echo "正在加载(或重载)Clash界面程序"
     #tmux send-keys -t clash:setting C-c 'browser -enable-gpu-rasterization --disable-pings --media-router=0 --enable-remote-extensions --load-extension= --window-size=1280,720 --app='$(grep "clash_dashboard=" clash_settings.config | sed 's/clash_dashboard=//g') Enter
@@ -228,7 +228,7 @@ bmi_clash_upgradeBinary(){
             for ((i=0; i<$bmi_clash_upgradeBinary_JSONCount; i++))
             do
                 if [ $(echo $bmi_clash_upgradeBinary_JSONFull | jq -r ".[$i].tag_name") == "premium" ]; then
-                    bmi_clash_upgradeBinary_listFull=$(echo $bmi_clash_upgradeBinary_JSONFull | jq -r ".[$i]") && break
+                    bmi_clash_upgradeBinary_listFull=$(echo $bmi_clash_upgradeBinary_JSONFull | jq -r ".[$i]") & break
                 fi
             done
         ;;
@@ -238,7 +238,7 @@ bmi_clash_upgradeBinary(){
     esac
     if [ $(bmi_clash_getControlConfig binary_version) == $(echo $bmi_clash_upgradeBinary_listFull | jq -r '.tag_name') ] || [ $(bmi_clash_getControlConfig binary_version) == "$(echo $bmi_clash_upgradeBinary_listFull | jq -r '.name' | awk '{print $2}')" ]; then
         if [ -e "./clash" ]; then
-            bmi_echo "当前版本为最新,无需再次更新." && exit 1
+            bmi_echo "当前版本为最新,无需再次更新." & exit 1
         fi
     fi
     bmi_clash_upgradeBinary_listAssets=$(echo $bmi_clash_upgradeBinary_listFull | jq -r '.assets')
@@ -272,7 +272,7 @@ bmi_clash_upgradeBinary(){
 
 bmi_clash_installBinary(){
     if [ -f "./clash" ]; then
-        bmi_echo "已经安装,请不要重复安装,如需升级,请输入 bmiclash upgrade" && exit
+        bmi_echo "已经安装,请不要重复安装,如需升级,请输入 bmiclash upgrade" & exit
     fi
     bmi_clash_upgradeBinary
 }
@@ -284,10 +284,10 @@ bmi_clash_upgrade(){
 }
 # run area
 if ! [ -x "$(command -v git)" ]; then
-    bmi_echo "未安装 Git ,无法执行" && exit 1
+    bmi_echo "未安装 Git ,无法执行" & exit 1
 fi
 if ! [ -x "$(command -v tmux)" ]; then
-    bmi_echo "未安装 Tmux ,无法执行" && exit 1
+    bmi_echo "未安装 Tmux ,无法执行" & exit 1
 fi
 #if ! [ -x "$(command -v bmi-debug)" ]; then
 #    bmi_echo "未安装 ??? ,无法执行" && exit 1
