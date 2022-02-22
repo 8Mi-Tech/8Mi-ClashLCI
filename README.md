@@ -10,7 +10,11 @@
 2. 使用前准备
 	- 复制`clash_settings.config.example`在原路径内并改名成`clash_settings.config`
 	- 编辑`clash_settings.config`内的参数
-	- 调整项目有 `sub_link`订阅地址 `dl_engine`下载器引擎 `clash_dashboard`控制页地址
+	- 调整项目有
+		- `sub_link` 订阅地址
+		- `dl_engine` 下载器引擎
+		- `clash_dashboard` 控制页地址
+		- `binary_update_channel` 默认为 premium 即可
 	- 输入`./bmiclash install`以安装Clash主控程序 (更新日期:2021.01.28)
 3. 开始使用
 	- 在终端内输入`./bmiclash start` 启动clash
