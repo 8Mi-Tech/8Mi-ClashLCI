@@ -4,3 +4,4 @@ Country.mmdb
 .cache
 cache.db
 clash
+console_error.tmp
