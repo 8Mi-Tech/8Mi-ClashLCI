@@ -283,10 +283,10 @@ bmi_clash_upgrade(){
     bmi_clash_upgradeBinary 1>&1 2>&2
 }
 # run area
-if ! [ -x "$(command -v git)" ]; then
+if [ ! -x "$(command -v git)" ]; then
     bmi_echo "未安装 Git ,无法执行" & exit 1
 fi
-if ! [ -x "$(command -v tmux)" ]; then
+if [ ! -x "$(command -v tmux)" ]; then
     bmi_echo "未安装 Tmux ,无法执行" & exit 1
 fi
 #if ! [ -x "$(command -v bmi-debug)" ]; then
