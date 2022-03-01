@@ -240,9 +240,6 @@ bmi_clash_setControlConfig() {
 }
 
 bmi_clash_upgradeBinary() {
-    if [ -f "./dl_list" ]; then
-        rm "./dl_list"
-    fi
     bmi_echo "正在检查主控程序更新"
     bmi_echo "二进制更新频道 "`bmi_clash_getControlConfig binary_update_channel`
     case "`bmi_clash_getControlConfig binary_update_channel`" in
@@ -272,13 +269,13 @@ bmi_clash_upgradeBinary() {
     bmi_clash_upgradeBinary_listCount=`echo $bmi_clash_upgradeBinary_listAssets | jq -r '. | length'`
     for ((i = 0; i < $bmi_clash_upgradeBinary_listCount; i++)); do
         if [ `echo $bmi_clash_upgradeBinary_listAssets | jq -r '.['$i'].browser_download_url' | grep "linux"` ]; then
-            dl_list="$dl_list"`echo $bmi_clash_upgradeBinary_listAssets | jq -r '.['$i'].browser_download_url' | grep "linux"``echo '\n'`
+            bmi_clash_Binary_LinkList="$bmi_clash_Binary_LinkList"`echo $bmi_clash_upgradeBinary_listAssets | jq -r '.['$i'].browser_download_url' | grep "linux"``echo '\n'`
         fi
     done
-    dl_list=`echo -e "$dl_list"`
+    bmi_clash_Binary_LinkList=`echo -e "$bmi_clash_Binary_LinkList"`
     case "`arch`" in
         "x86_64")
-            bmi_clash_upgradeBinary_URL=`echo "$dl_list" | grep "amd64" `
+            bmi_clash_upgradeBinary_URL=`echo "$bmi_clash_Binary_LinkList" | grep "amd64" `
         ;;
     esac
     bmi_clash_upgradeBinary_URL=`echo $bmi_clash_upgradeBinary_URL | sed 's#https://github.com##g'`
