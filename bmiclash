@@ -5,10 +5,10 @@
 
 # 统一请求选择器 取自配置项 dl_engine
 # bmi_downloadHub "下载地址" “文件名称 或 -” “下载引擎(可选)” "重试 boll"
-bmi_debug(){
-    $1 2>./console_error.tmp || bmi_debugError $1
+bmi_debug() {
+    "$1" 2>./console_error.tmp || bmi_debugError "$1"
 }
-bmi_debugError(){
+bmi_debugError() {
     echo "————————————————————————————————"
     bmi_echo "完了~巴比Q了~完了完了~我丢~哇焯~这都啥错误啊~我裂开了~"
     bmi_echo '执行错误的指令 '$1
@@ -19,11 +19,11 @@ bmi_debugError(){
     rm ./console_error.tmp
     exit 1
 }
-bmi_downloadHub(){
+bmi_downloadHub() {
     if [ $3 ]; then
         bmi_downloadHub_EngineID=$3
     else
-        bmi_downloadHub_EngineID="$(bmi_clash_getControlConfig dl_engine)"
+        bmi_downloadHub_EngineID="`bmi_clash_getControlConfig dl_engine`"
         #echo "未设置,从配置内读取"$bmi_downloadHub_EngineID
     fi
     case $bmi_downloadHub_EngineID in
@@ -41,6 +41,7 @@ bmi_downloadHub(){
         ;;
         *)
             bmi_echo "下载引擎未设置,请到 clash_settings.config 内设置 dl_engine=[axel|wget|*curl]"
+        ;;
     esac
     if [ $4 ]; then
         bmi_downloadHub_Retry=$4
@@ -52,32 +53,44 @@ bmi_downloadHub(){
     fi
 }
 
-bmi_echo(){
-    echo "[8Mi-ClashLCI] "$1
+bmi_echo() {
+    echo "[8Mi-ClashLCI] ""$1"
 }
 
-bmi_disableProxy(){
+bmi_disableProxy() {
     export http_proxy=
     export https_proxy=
     export ftp_proxy=
 }
 
-bmi_clashHelp() {
-    bmi_echo "当前运行状态 "$(bmi_clashIsRunning_bool)
-    echo '[8Mi-ClashLCI] 未知的指令 不过可以看看如下帮助
-    用法: bmiclash [install|start|stop|reload]'
-}
-
-bmi_clashReloadHelp() {
-    echo '[8Mi-ClashLCI] 重载指令帮助
+bmi_help_ClashLCI() {
+    case $1 in
+        "")
+            bmi_echo "当前运行状态 "`bmi_clashIsRunning_bool`
+            bmi_echo '未知的指令 不过可以看看如下帮助
+            用法: bmiclash [install|start|stop|reload]'
+        ;;
+        "reload")
+            bmi_echo '重载指令帮助
     用法: bmiclash reload [config|ui]
     重载指令详细讲解:
         - 配置文件: bmiclash reload config
-        - UI界面: bmiclash reload ui '
+            - UI界面: bmiclash reload ui '
+        ;;
+        "setconfig")
+            bmi_echo '设置配置帮助
+    (参数标注双引号的说明指令内需要包含双引号)
+        订阅链接: ./bmiclash set sub_link "*"
+        下载器类型: ./bmiclash set dl_engine [wget|curl|axel]
+        二进制文件更新频道: ./bmiclash set binary_update_channel [stable|premium]
+        GitHub镜像地址(结尾不要加斜杠): ./bmiclash set github_url "*"
+            (注:部分加速地址非专门为GitHub加速,请记得插入github.com 比如 https://github.do/https://github.com)'
+        ;;
+    esac
 }
 
 bmi_clashIsRunning() {
-    tmux_result=$(tmux ls 2>&1)
+    tmux_result=`tmux ls 2>&1`
     echo $tmux_result | grep "clash: " >/dev/null
     if [ $? == 0 ]; then
         echo 1
@@ -86,7 +99,7 @@ bmi_clashIsRunning() {
     fi
 }
 bmi_clashIsRunning_bool() {
-    tmux_result=$(tmux ls 2>&1)
+    tmux_result=`tmux ls 2>&1`
     echo $tmux_result | grep "clash: " >/dev/null
     if [ $? == 0 ]; then
         echo true
@@ -96,12 +109,12 @@ bmi_clashIsRunning_bool() {
 }
 
 bmi_clash_getConfig() {
-    bmi_downloadHub "$(bmi_clash_getControlConfig sub_link)" "config.yaml"
+    bmi_downloadHub "`bmi_clash_getControlConfig sub_link`" "config.yaml"
     if [ 0 -ne $bmi_downloadHubError ]; then
         if [ $bmi_clash_get_failed_count == 0 ]; then
             bmi_echo "获取失败,正在重试(直到提示成功即可)"
         fi
-        bmi_clash_get_failed_count=$(expr $bmi_clash_get_failed_count + 1)
+        bmi_clash_get_failed_count=`(( $bmi_clash_get_failed_count + 1 ))`
         bmi_clash_getConfig
     else
         bmi_clash_get_failed_count=0
@@ -110,7 +123,7 @@ bmi_clash_getConfig() {
 }
 
 bmi_clash_addConfig() {
-    if [ $(grep $1 config.yaml) -z "" ]; then
+    if [ `grep $1 config.yaml` -z "" ]; then
         if [ $blank == 0 ]; then
             echo -e "\n"$1": "$2 >>./config.yaml
             blank=1
@@ -123,8 +136,9 @@ bmi_clash_addConfig() {
 
 bmi_startClash() {
     bmi_disableProxy
-    if [ $(bmi_clashIsRunning) == 1 ]; then
-        bmi_echo "Clash已加载,若需要重载配置,请输入 \" bmiclash reload config \"" & exit
+    if [ `bmi_clashIsRunning` == 1 ]; then
+        bmi_echo "Clash已加载,若需要重载配置,请输入 \" bmiclash reload config \"" &
+        exit
     fi
     bmi_echo "正在加载Clash中,请稍等"
     env bmi_clash_tmux=true tmux new-session -s clash -n core -d
@@ -150,8 +164,8 @@ bmi_startClash() {
     gsettings set org.gnome.system.proxy ignore-hosts "['localhost', '127.0.0.0/8', '::1']"
     bmi_echo "系统代理参数设置成功"
 }
-bmi_clash_whenRunning(){
-    if [ $TMUX ]&&[ $bmi_clash_tmux ]; then
+bmi_clash_whenRunning() {
+    if [ $TMUX ] && [ $bmi_clash_tmux ]; then
         ./clash -d ./
         gsettings set org.gnome.system.proxy mode 'none'
     else
@@ -159,17 +173,17 @@ bmi_clash_whenRunning(){
     fi
 }
 
-bmi_reloadClash(){
-    if [ $(bmi_clashIsRunning) == 0 ]; then
+bmi_reloadClash() {
+    if [ `bmi_clashIsRunning` == 0 ]; then
         bmi_echo "Clash未加载,无效操作" & exit 1
     fi
     bmi_echo "正在加载(或重载)Clash主程序"
-    tmux send-keys -t clash:core C-c "./bmiclash start binary" Enter 2>./console_error.tmp || bmi_debugError
+    bmi_debug 'tmux send-keys -t clash:core C-c "./bmiclash start binary" Enter'
     bmi_echo "Clash主程序以及界面程序加载完毕(也许是)"
 }
 
 bmi_reloadClashConfig() {
-    if [ $(bmi_clashIsRunning) == 0 ]; then
+    if [ `bmi_clashIsRunning` == 0 ]; then
         bmi_echo "Clash未加载,无效操作" & exit 1
     fi
     bmi_echo "开始获取订阅配置文件中 ( 若显示进度条并且提示100%则提示获取成功 ) "
@@ -187,18 +201,18 @@ bmi_reloadClashConfig() {
 }
 
 bmi_reloadClashUI() {
-    if [ $(bmi_clashIsRunning) == 0 ]; then
+    if [ `bmi_clashIsRunning` == 0 ]; then
         bmi_echo "Clash未加载,无效操作" & exit 1
     fi
     bmi_echo "正在加载(或重载)Clash界面程序"
-    #tmux send-keys -t clash:setting C-c 'browser -enable-gpu-rasterization --disable-pings --media-router=0 --enable-remote-extensions --load-extension= --window-size=1280,720 --app='$(grep "clash_dashboard=" clash_settings.config | sed 's/clash_dashboard=//g') Enter
+    #tmux send-keys -t clash:setting C-c 'browser -enable-gpu-rasterization --disable-pings --media-router=0 --enable-remote-extensions --load-extension= --window-size=1280,720 --app='`grep "clash_dashboard=" clash_settings.config | sed 's/clash_dashboard=//g') Enter
     chmod +x "./8Mi-ClashLUI"
-    tmux send-keys -t clash:setting C-c './8Mi-ClashLUI' Enter 2>./console_error.tmp || bmi_debugError
+    bmi_debug 'tmux send-keys -t clash:setting C-c ./8Mi-ClashLUI Enter'
     bmi_echo "Clash界面程序加载完毕(或许是)"
 }
 
 bmi_stopClash() {
-    if [ $(bmi_clashIsRunning) == 0 ]; then
+    if [ `bmi_clashIsRunning` == 0 ]; then
         bmi_echo "Clash已停止"
         exit
     fi
@@ -208,16 +222,16 @@ bmi_stopClash() {
     bmi_echo "停止完毕"
 }
 
-bmi_clash_getControlConfig(){
+bmi_clash_getControlConfig() {
     grep $1"=" clash_settings.config | sed '/#'$1'/d' | sed 's/'$1'=//g' 1>&1 2>&2
 }
 
-bmi_clash_setControlConfig(){
-    if [ $(grep $1"=" clash_settings.config) ]; then
-        if [ $(echo $(bmi_clash_getControlConfig $1) | grep "/" ) ]; then
-            sed -i "s#"$1"="$(bmi_clash_getControlConfig $1)"#"$1"="$2"#g" clash_settings.config
+bmi_clash_setControlConfig() {
+    if [ `grep $1"=" clash_settings.config` ]; then
+        if [ `echo `bmi_clash_getControlConfig $1` | grep "/"` ]; then
+            sed -i "s#"$1"="`bmi_clash_getControlConfig $1`"#"$1"="$2"#g" clash_settings.config
         else
-            sed -i "s/"$1"="$(bmi_clash_getControlConfig $1)"/"$1"="$2"/g" clash_settings.config
+            sed -i "s/"$1"="`bmi_clash_getControlConfig $1`"/"$1"="$2"/g" clash_settings.config
         fi
     else
         #echo  $1"="$2 >> clash_settings.config
@@ -225,81 +239,86 @@ bmi_clash_setControlConfig(){
     fi
 }
 
-bmi_clash_upgradeBinary(){
+bmi_clash_upgradeBinary() {
     if [ -f "./dl_list" ]; then
         rm "./dl_list"
     fi
     bmi_echo "正在检查主控程序更新"
-    bmi_echo "二进制更新频道 "$(bmi_clash_getControlConfig binary_update_channel)
-    case "$(bmi_clash_getControlConfig binary_update_channel)" in
+    bmi_echo "二进制更新频道 "`bmi_clash_getControlConfig binary_update_channel`
+    case "`bmi_clash_getControlConfig binary_update_channel`" in
         "premium")
-            bmi_clash_upgradeBinary_JSONFull=$(bmi_downloadHub https://api.github.com/repos/Dreamacro/clash/releases - curl true)
-            bmi_clash_upgradeBinary_JSONCount=$(echo $bmi_clash_upgradeBinary_JSONFull | jq -r '. | length')
-            for ((i=0; i<$bmi_clash_upgradeBinary_JSONCount; i++))
-            do
-                if [ $(echo $bmi_clash_upgradeBinary_JSONFull | jq -r ".[$i].tag_name") == "premium" ]; then
-                    bmi_clash_upgradeBinary_listFull=$(echo $bmi_clash_upgradeBinary_JSONFull | jq -r ".[$i]") & break
+            bmi_clash_upgradeBinary_JSONFull=`bmi_downloadHub https://api.github.com/repos/Dreamacro/clash/releases - curl true`
+            bmi_clash_upgradeBinary_JSONCount=`echo $bmi_clash_upgradeBinary_JSONFull | jq -r '. | length'`
+            for ((i = 0; i < $bmi_clash_upgradeBinary_JSONCount; i++)); do
+                if [ `echo $bmi_clash_upgradeBinary_JSONFull | jq -r ".[$i].tag_name"` == "premium" ]; then
+                    bmi_clash_upgradeBinary_listFull=`echo $bmi_clash_upgradeBinary_JSONFull | jq -r ".[$i]"`
+                    bmi_clash_Binary_New-Version="`echo $bmi_clash_upgradeBinary_listFull | jq -r '.name' | awk '{print $2}'`"
+                    break
                 fi
             done
         ;;
         "stable")
-            bmi_clash_upgradeBinary_listFull=$(bmi_downloadHub https://api.github.com/repos/Dreamacro/clash/releases - curl | jq -r '.[0]')
+            bmi_clash_upgradeBinary_listFull=`bmi_downloadHub https://api.github.com/repos/Dreamacro/clash/releases - curl | jq -r '.[0]'`
+            bmi_clash_Binary_NewVersion=`echo $bmi_clash_upgradeBinary_listFull | jq -r '.tag_name'`
         ;;
     esac
-    if [ $(bmi_clash_getControlConfig binary_version) == $(echo $bmi_clash_upgradeBinary_listFull | jq -r '.tag_name') ] || [ $(bmi_clash_getControlConfig binary_version) == "$(echo $bmi_clash_upgradeBinary_listFull | jq -r '.name' | awk '{print $2}')" ]; then
-        if [ -e "./clash" ]; then
-            bmi_echo "当前版本为最新,无需再次更新." & exit 1
-        fi
+    if [ "`bmi_clash_getControlConfig binary_version`" == "$bmi_clash_Binary_NewVersion" ]&&[ -e "./clash" ]; then
+        bmi_echo "当前版本为最新,无需再次更新." & exit 1
+    else
+        bmi_echo "最新版本为"$bmi_clash_Binary_NewVersion
     fi
-    bmi_clash_upgradeBinary_listAssets=$(echo $bmi_clash_upgradeBinary_listFull | jq -r '.assets')
+    bmi_clash_upgradeBinary_listAssets=`echo $bmi_clash_upgradeBinary_listFull | jq -r '.assets'`
     bmi_clash_upgradeBinary_listCount=0
-    bmi_clash_upgradeBinary_listCount=$(echo $bmi_clash_upgradeBinary_listAssets | jq -r '. | length')
-    for ((i=0; i<$bmi_clash_upgradeBinary_listCount; i++))
-    do
-        echo $bmi_clash_upgradeBinary_listAssets | jq -r '.['$i'].browser_download_url' | grep "linux">> dl_list
+    bmi_clash_upgradeBinary_listCount=`echo $bmi_clash_upgradeBinary_listAssets | jq -r '. | length'`
+    for ((i = 0; i < $bmi_clash_upgradeBinary_listCount; i++)); do
+        if [ `echo $bmi_clash_upgradeBinary_listAssets | jq -r '.['$i'].browser_download_url' | grep "linux"` ]; then
+            dl_list="$dl_list"`echo $bmi_clash_upgradeBinary_listAssets | jq -r '.['$i'].browser_download_url' | grep "linux"``echo '\n'`
+        fi
     done
-    case "$(arch)" in
+    dl_list=`echo -e "$dl_list"`
+    case "`arch`" in
         "x86_64")
-            bmi_clash_upgradeBinary_URL=$(grep "amd64" dl_list)
+            bmi_clash_upgradeBinary_URL=`echo "$dl_list" | grep "amd64" `
         ;;
     esac
-    rm ./dl_list
-    bmi_clash_upgradeBinary_URL=$(echo $bmi_clash_upgradeBinary_URL | sed 's#https://github.com##g')
-    bmi_downloadHub $(bmi_clash_getControlConfig github_url)$bmi_clash_upgradeBinary_URL clash.gz
+    bmi_clash_upgradeBinary_URL=`echo $bmi_clash_upgradeBinary_URL | sed 's#https://github.com##g'`
+    bmi_downloadHub `bmi_clash_getControlConfig github_url`$bmi_clash_upgradeBinary_URL clash.gz
     #bmi_downloadHub $bmi_clash_upgradeBinary_URL clash.gz
     gunzip -f clash.gz
     chmod +x clash
-    case "$(bmi_clash_getControlConfig binary_update_channel)" in
+    case "`bmi_clash_getControlConfig binary_update_channel`" in
         "premium")
-            bmi_clash_setControlConfig binary_version $(echo $bmi_clash_upgradeBinary_listFull | jq -r '.name' | awk '{print $2}')
+            bmi_clash_setControlConfig binary_version `echo $bmi_clash_upgradeBinary_listFull | jq -r '.name' | awk '{print $2}'`
         ;;
         "stable")
-            bmi_clash_setControlConfig binary_version $(echo $bmi_clash_upgradeBinary_listFull | jq -r '.tag_name')
+            bmi_clash_setControlConfig binary_version `echo $bmi_clash_upgradeBinary_listFull | jq -r '.tag_name'`
         ;;
     esac
     
 }
 
-bmi_clash_installBinary(){
+bmi_clash_installBinary() {
     if [ -f "./clash" ]; then
         bmi_echo "已经安装,请不要重复安装,如需升级,请输入 bmiclash upgrade" & exit
     fi
     bmi_clash_upgradeBinary
 }
 
-bmi_clash_upgrade(){
+bmi_clash_upgrade() {
     bmi_echo "检查控制器更新"
     git pull || bmi_echo "控制器更新失败,请检查网络..." | exit 1
     bmi_clash_upgradeBinary 1>&1 2>&2
 }
 # run area
-if [ ! -x "$(command -v git)" ]; then
-    bmi_echo "未安装 Git ,无法执行" & exit 1
+if [ ! -x "`command -v git`" ]; then
+    bmi_echo "未安装 Git ,无法执行" &
+    exit 1
 fi
-if [ ! -x "$(command -v tmux)" ]; then
-    bmi_echo "未安装 Tmux ,无法执行" & exit 1
+if [ ! -x "`command -v tmux`" ]; then
+    bmi_echo "未安装 Tmux ,无法执行" &
+    exit 1
 fi
-#if ! [ -x "$(command -v bmi-debug)" ]; then
+#if ! [ -x "`command -v bmi-debug`" ]; then
 #    bmi_echo "未安装 ??? ,无法执行" && exit 1
 #fi
 
@@ -332,7 +351,7 @@ case "$1" in
                 bmi_reloadClash
             ;;
             *)
-                bmi_clashReloadHelp
+                bmi_help_ClashLCI reload
             ;;
         esac
     ;;
@@ -340,13 +359,7 @@ case "$1" in
         if [ $2 ]; then
             bmi_clash_setControlConfig $2 $3
         else
-            echo '[8Mi-ClashLCI] 设置配置帮助
-    (参数标注双引号的说明指令内需要包含双引号)
-        订阅链接: ./bmiclash set sub_link "*"
-        下载器类型: ./bmiclash set dl_engine [wget|curl|axel]
-        二进制文件更新频道: ./bmiclash set binary_update_channel [stable|premium]
-        GitHub镜像地址(结尾不要加斜杠): ./bmiclash set github_url "*"
-            (注:部分加速地址非专门为GitHub加速,请记得插入github.com 比如 https://github.do/https://github.com)'
+            bmi_help_ClashLCI setconfig
             exit 1
         fi
     ;;
@@ -354,6 +367,6 @@ case "$1" in
         bmi_clash_upgrade 1>&1 2>&2
     ;;
     *)
-        bmi_clashHelp
+        bmi_help_ClashLCI
     ;;
 esac
