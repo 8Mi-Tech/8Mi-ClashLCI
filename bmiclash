@@ -6,7 +6,7 @@
 # 统一请求选择器 取自配置项 dl_engine
 # bmi_downloadHub "下载地址" “文件名称 或 -” “下载引擎(可选)” "重试 boll"
 bmi_debug() {
-    $1 2>./console_error.tmp || bmi_debugError "$1"
+    eval $1 2>./console_error.tmp || bmi_debugError $1
 }
 bmi_debugError() {
     echo "————————————————————————————————"
