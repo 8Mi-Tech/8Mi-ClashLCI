@@ -20,7 +20,7 @@ bmi_debugError(){
     exit 1
 }
 bmi_downloadHub(){
-    if [ $3 ]; then 
+    if [ $3 ]; then
         bmi_downloadHub_EngineID=$3
     else
         bmi_downloadHub_EngineID="$(bmi_clash_getControlConfig dl_engine)"
@@ -42,13 +42,13 @@ bmi_downloadHub(){
         *)
             bmi_echo "下载引擎未设置,请到 clash_settings.config 内设置 dl_engine=[axel|wget|*curl]"
     esac
-    if [ $4 ]; then 
+    if [ $4 ]; then
         bmi_downloadHub_Retry=$4
     else
         bmi_downloadHub_Retry=false
     fi
     if [ $bmi_downloadHub_Retry == true ] | [ $bmi_downloadHubError != 0 ]; then
-    bmi_downloadHub $1 $2 $3 $4
+        bmi_downloadHub $1 $2 $3 $4
     fi
 }
 
@@ -127,7 +127,7 @@ bmi_startClash() {
         bmi_echo "Clash已加载,若需要重载配置,请输入 \" bmiclash reload config \"" & exit
     fi
     bmi_echo "正在加载Clash中,请稍等"
-    tmux new-session -s clash -n core -d
+    env bmi_clash_tmux=true tmux new-session -s clash -n core -d
     bmi_clash_get_failed_count=0
     bmi_reloadClashConfig
     tmux new-window -t clash -n setting
@@ -143,10 +143,20 @@ bmi_startClash() {
     gsettings set org.gnome.system.proxy mode 'manual'
     gsettings set org.gnome.system.proxy.http port 7890
     gsettings set org.gnome.system.proxy.http host '127.0.0.1'
-    gsettings set org.gnome.system.proxy.socks port 7891
+    gsettings set org.gnome.system.proxy.https port 7890
+    gsettings set org.gnome.system.proxy.https host '127.0.0.1'
+    gsettings set org.gnome.system.proxy.socks port 7890
     gsettings set org.gnome.system.proxy.socks host '127.0.0.1'
     gsettings set org.gnome.system.proxy ignore-hosts "['localhost', '127.0.0.0/8', '::1']"
     bmi_echo "系统代理参数设置成功"
+}
+bmi_clash_whenRunning(){
+    if [ $TMUX ]&&[ $bmi_clash_tmux ]; then
+        ./clash -d ./
+        gsettings set org.gnome.system.proxy mode 'none'
+    else
+        bmi_echo "调试??一边玩去 (doge)"
+    fi
 }
 
 bmi_reloadClash(){
@@ -154,7 +164,7 @@ bmi_reloadClash(){
         bmi_echo "Clash未加载,无效操作" & exit 1
     fi
     bmi_echo "正在加载(或重载)Clash主程序"
-    tmux send-keys -t clash:core C-c "./clash -d ./" Enter 2>./console_error.tmp || bmi_debugError
+    tmux send-keys -t clash:core C-c "./bmiclash start binary" Enter 2>./console_error.tmp || bmi_debugError
     bmi_echo "Clash主程序以及界面程序加载完毕(也许是)"
 }
 
@@ -250,13 +260,13 @@ bmi_clash_upgradeBinary(){
     done
     case "$(arch)" in
         "x86_64")
-        bmi_clash_upgradeBinary_URL=$(grep "amd64" dl_list)
+            bmi_clash_upgradeBinary_URL=$(grep "amd64" dl_list)
         ;;
     esac
     rm ./dl_list
-   bmi_clash_upgradeBinary_URL=$(echo $bmi_clash_upgradeBinary_URL | sed 's#https://github.com##g')
-   bmi_downloadHub $(bmi_clash_getControlConfig github_url)$bmi_clash_upgradeBinary_URL clash.gz
-   #bmi_downloadHub $bmi_clash_upgradeBinary_URL clash.gz
+    bmi_clash_upgradeBinary_URL=$(echo $bmi_clash_upgradeBinary_URL | sed 's#https://github.com##g')
+    bmi_downloadHub $(bmi_clash_getControlConfig github_url)$bmi_clash_upgradeBinary_URL clash.gz
+    #bmi_downloadHub $bmi_clash_upgradeBinary_URL clash.gz
     gunzip -f clash.gz
     chmod +x clash
     case "$(bmi_clash_getControlConfig binary_update_channel)" in
@@ -292,12 +302,20 @@ fi
 #if ! [ -x "$(command -v bmi-debug)" ]; then
 #    bmi_echo "未安装 ??? ,无法执行" && exit 1
 #fi
+
 case "$1" in
     "install")
         bmi_clash_installBinary
     ;;
     "start")
-        bmi_startClash
+        case "$2" in
+            "binary")
+                bmi_clash_whenRunning
+            ;;
+            "")
+                bmi_startClash
+            ;;
+        esac
     ;;
     "stop")
         bmi_stopClash
@@ -319,21 +337,21 @@ case "$1" in
         esac
     ;;
     "set")
-    if [ $2 ]; then
-    bmi_clash_setControlConfig $2 $3
-    else
-    echo '[8Mi-ClashLCI] 设置配置帮助
+        if [ $2 ]; then
+            bmi_clash_setControlConfig $2 $3
+        else
+            echo '[8Mi-ClashLCI] 设置配置帮助
     (参数标注双引号的说明指令内需要包含双引号)
-        订阅链接: ./bmiclash set sub_link "*" 
+        订阅链接: ./bmiclash set sub_link "*"
         下载器类型: ./bmiclash set dl_engine [wget|curl|axel]
         二进制文件更新频道: ./bmiclash set binary_update_channel [stable|premium]
         GitHub镜像地址(结尾不要加斜杠): ./bmiclash set github_url "*"
-        (注:部分加速地址非专门为GitHub加速,请记得插入github.com 比如 https://github.do/https://github.com)'
-    exit 1
-    fi
+            (注:部分加速地址非专门为GitHub加速,请记得插入github.com 比如 https://github.do/https://github.com)'
+            exit 1
+        fi
     ;;
     "upgrade")
-    bmi_clash_upgrade 1>&1 2>&2
+        bmi_clash_upgrade 1>&1 2>&2
     ;;
     *)
         bmi_clashHelp
