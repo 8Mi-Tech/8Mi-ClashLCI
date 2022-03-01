@@ -6,12 +6,12 @@
 # 统一请求选择器 取自配置项 dl_engine
 # bmi_downloadHub "下载地址" “文件名称 或 -” “下载引擎(可选)” "重试 boll"
 bmi_debug() {
-    "$1" 2>./console_error.tmp || bmi_debugError "$1"
+    $1 2>./console_error.tmp || bmi_debugError "$1"
 }
 bmi_debugError() {
     echo "————————————————————————————————"
     bmi_echo "完了~巴比Q了~完了完了~我丢~哇焯~这都啥错误啊~我裂开了~"
-    bmi_echo '执行错误的指令 '$1
+    bmi_echo '执行错误的指令 '"$1"
     bmi_echo '执行错误的输出:'
     cat ./console_error.tmp
     bmi_echo "前往 https://github.com/8Mi-Tech/8Mi-ClashLCI/issues 反馈并上传截图 以供方便处理"
