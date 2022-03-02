@@ -57,12 +57,41 @@ bmi_echo() {
     echo "[8Mi-ClashLCI] ""$1"
 }
 
-bmi_disableProxy() {
-    export http_proxy=
-    export https_proxy=
-    export ftp_proxy=
+bmi_setSystemProxy() {
+    if [ $1 == true ]; then
+        if [ "`command -v gsettings`" ]; then
+        gsettings set org.gnome.system.proxy mode 'manual'
+        gsettings set org.gnome.system.proxy.http port 7890
+        gsettings set org.gnome.system.proxy.http host '127.0.0.1'
+        gsettings set org.gnome.system.proxy.https port 7890
+        gsettings set org.gnome.system.proxy.https host '127.0.0.1'
+        gsettings set org.gnome.system.proxy.socks port 7890
+        gsettings set org.gnome.system.proxy.socks host '127.0.0.1'
+        gsettings set org.gnome.system.proxy ignore-hosts "['localhost', '127.0.0.0/8', '::1']"
+        else
+        `pwd`/SetSystemProxy.sh true
+        fi
+    else
+        if [ "`command -v gsettings`" ]; then
+        gsettings set org.gnome.system.proxy mode 'none'
+        else
+        `pwd`/SetSystemProxy.sh false
+        fi
+    fi
 }
 
+bmi_setThisProxy(){
+    default_ip="127.0.0.1:7890"
+    if [ $1 == true ]; then
+    http_proxy="http://"$default_ip
+    https_proxy="http://"$default_ip
+    SOCKS_SERVER="socks5://"$default_ip
+    else
+    http_proxy=""
+    https_proxy=""
+    SOCKS_SERVER=""
+    fi
+}
 bmi_help_ClashLCI() {
     case $1 in
         "")
@@ -135,7 +164,7 @@ bmi_clash_addConfig() {
 }
 
 bmi_startClash() {
-    bmi_disableProxy
+    bmi_setThisProxy false
     if [ `bmi_clashIsRunning` == 1 ]; then
         bmi_echo "Clash已加载,若需要重载配置,请输入 \" bmiclash reload config \"" &
         exit
@@ -147,27 +176,15 @@ bmi_startClash() {
     tmux new-window -t clash -n setting
     tmux send-keys -t clash:setting '#8Mi-ClashLCI<Powered By Clash>' Enter
     bmi_reloadClashUI
-    #echo '#!/bin/bash
-    #export http_proxy="http://127.0.0.1:7890"
-    #export https_proxy=$http_proxy
-    #export ftp_proxy=$http_proxy
-    #export SOCKS_SERVER="socks5://127.0.0.1:7890"
-    #export no_proxy="localhost, 127.0.0.1, ::1"' > ./env_proxy.sh
     bmi_echo "正在调整系统设置里的系统代理参数"
-    gsettings set org.gnome.system.proxy mode 'manual'
-    gsettings set org.gnome.system.proxy.http port 7890
-    gsettings set org.gnome.system.proxy.http host '127.0.0.1'
-    gsettings set org.gnome.system.proxy.https port 7890
-    gsettings set org.gnome.system.proxy.https host '127.0.0.1'
-    gsettings set org.gnome.system.proxy.socks port 7890
-    gsettings set org.gnome.system.proxy.socks host '127.0.0.1'
-    gsettings set org.gnome.system.proxy ignore-hosts "['localhost', '127.0.0.0/8', '::1']"
+    bmi_setSystemProxy true
     bmi_echo "系统代理参数设置成功"
 }
 bmi_clash_whenRunning() {
     if [ $TMUX ] && [ $bmi_clash_tmux ]; then
+        bmi_setSystemProxy true
         ./clash -d ./
-        gsettings set org.gnome.system.proxy mode 'none'
+        bmi_setSystemProxy false
     else
         bmi_echo "调试??一边玩去 (doge)"
     fi
@@ -187,7 +204,7 @@ bmi_reloadClashConfig() {
         bmi_echo "Clash未加载,无效操作" & exit 1
     fi
     bmi_echo "开始获取订阅配置文件中 ( 若显示进度条并且提示100%则提示获取成功 ) "
-    bmi_disableProxy
+    bmi_setThisProxy false
     bmi_clash_get_failed_count=0
     bmi_clash_getConfig
     blank=0
@@ -217,7 +234,7 @@ bmi_stopClash() {
         exit
     fi
     bmi_echo "正在停止Clash主程序以及界面程序"
-    gsettings set org.gnome.system.proxy mode 'none'
+    bmi_setSystemProxy false
     tmux kill-session -t clash
     bmi_echo "停止完毕"
 }
