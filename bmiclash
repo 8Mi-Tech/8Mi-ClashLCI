@@ -246,19 +246,24 @@ bmi_stopClash() {
 }
 
 bmi_clash_getControlConfig() {
-    grep $1"=" clash_settings.config | sed '/#'$1'/d' | sed 's/'$1'=//g' 1>&1 2>&2
+    if [ `grep $1"=" clash_settings.config` ];then
+        grep $1"=" clash_settings.config | grep -v "#" | sed 's/'$1'=//g' 1>&1 2>&2
+    else
+        exit 1
+    fi
 }
 
 bmi_clash_setControlConfig() {
     if [ `grep $1"=" clash_settings.config` ]; then
-        if [ `echo `bmi_clash_getControlConfig $1` | grep "/"` ]; then
-            sed -i "s#"$1"="`bmi_clash_getControlConfig $1`"#"$1"="$2"#g" clash_settings.config
+        if [ `bmi_clash_getControlConfig $1 | grep "/"` ]; then
+            bmi_sed_symbol="#"
         else
-            sed -i "s/"$1"="`bmi_clash_getControlConfig $1`"/"$1"="$2"/g" clash_settings.config
+            bmi_sed_symbol="/"
         fi
+        sed -i "s"$bmi_sed_symbol$1"="`bmi_clash_getControlConfig $1`$bmi_sed_symbol$1"="$2$bmi_sed_symbol"g" clash_settings.config
     else
-        #echo  $1"="$2 >> clash_settings.config
         bmi_echo "无效参数"
+        exit 1
     fi
 }
 
@@ -272,7 +277,7 @@ bmi_clash_upgradeBinary() {
             for ((i = 0; i < $bmi_clash_upgradeBinary_JSONCount; i++)); do
                 if [ `echo $bmi_clash_upgradeBinary_JSONFull | jq -r ".[$i].tag_name"` == "premium" ]; then
                     bmi_clash_upgradeBinary_listFull=`echo $bmi_clash_upgradeBinary_JSONFull | jq -r ".[$i]"`
-                    bmi_clash_Binary_New-Version="`echo $bmi_clash_upgradeBinary_listFull | jq -r '.name' | awk '{print $2}'`"
+                    bmi_clash_Binary_NewVersion="`echo $bmi_clash_upgradeBinary_listFull | jq -r '.name' | awk '{print $2}'`"
                     break
                 fi
             done
