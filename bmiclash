@@ -343,9 +343,9 @@ if [ ! -x "`command -v tmux`" ]; then
     bmi_echo "未安装 Tmux ,无法执行" &
     exit 1
 fi
-#if ! [ -x "`command -v bmi-debug`" ]; then
-#    bmi_echo "未安装 ??? ,无法执行" && exit 1
-#fi
+if ! [ -x "`command -v $(bmi_clash_getControlConfig dl_engine) `" ]; then
+    bmi_echo "配置文件里读取到 dl_engine 为 `bmi_clash_getControlConfig dl_engine`, 但系统无法检测到有本指令的存在,请修改或者安装对应的包再执行本程序" & exit 1
+fi
 
 case "$1" in
     "install")
