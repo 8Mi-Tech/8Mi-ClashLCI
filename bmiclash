@@ -60,22 +60,22 @@ bmi_echo() {
 bmi_setSystemProxy() {
     if [ $1 == true ]; then
         if [ "`command -v gsettings`" ]; then
-        gsettings set org.gnome.system.proxy mode 'manual'
-        gsettings set org.gnome.system.proxy.http port 7890
-        gsettings set org.gnome.system.proxy.http host '127.0.0.1'
-        gsettings set org.gnome.system.proxy.https port 7890
-        gsettings set org.gnome.system.proxy.https host '127.0.0.1'
-        gsettings set org.gnome.system.proxy.socks port 7890
-        gsettings set org.gnome.system.proxy.socks host '127.0.0.1'
-        gsettings set org.gnome.system.proxy ignore-hosts "['localhost', '127.0.0.0/8', '::1']"
+            gsettings set org.gnome.system.proxy mode 'manual'
+            gsettings set org.gnome.system.proxy.http port 7890
+            gsettings set org.gnome.system.proxy.http host '127.0.0.1'
+            gsettings set org.gnome.system.proxy.https port 7890
+            gsettings set org.gnome.system.proxy.https host '127.0.0.1'
+            gsettings set org.gnome.system.proxy.socks port 7890
+            gsettings set org.gnome.system.proxy.socks host '127.0.0.1'
+            gsettings set org.gnome.system.proxy ignore-hosts "['localhost', '127.0.0.0/8', '::1']"
         else
-        `pwd`/SetSystemProxy.sh true
+            `pwd`/SetSystemProxy.sh true
         fi
     else
         if [ "`command -v gsettings`" ]; then
-        gsettings set org.gnome.system.proxy mode 'none'
+            gsettings set org.gnome.system.proxy mode 'none'
         else
-        `pwd`/SetSystemProxy.sh false
+            `pwd`/SetSystemProxy.sh false
         fi
     fi
 }
@@ -83,13 +83,13 @@ bmi_setSystemProxy() {
 bmi_setThisProxy(){
     default_ip="127.0.0.1:7890"
     if [ $1 == true ]; then
-    http_proxy="http://"$default_ip
-    https_proxy="http://"$default_ip
-    SOCKS_SERVER="socks5://"$default_ip
+        http_proxy="http://"$default_ip
+        https_proxy="http://"$default_ip
+        SOCKS_SERVER="socks5://"$default_ip
     else
-    http_proxy=""
-    https_proxy=""
-    SOCKS_SERVER=""
+        http_proxy=""
+        https_proxy=""
+        SOCKS_SERVER=""
     fi
 }
 bmi_help_ClashLCI() {
@@ -173,6 +173,12 @@ bmi_startClash() {
     env bmi_clash_tmux=true tmux new-session -s clash -n core -d
     bmi_clash_get_failed_count=0
     bmi_reloadClashConfig
+    sleep 1
+    if [ ! `ps aux | grep "./clash" | grep -v "grep"` ]; then
+        bmi_stopClash
+        bmi_echo "加载失败,请检查网络环境以及配置文件下载地址是否正确"
+        exit 1
+    fi
     tmux new-window -t clash -n setting
     tmux send-keys -t clash:setting '#8Mi-ClashLCI<Powered By Clash>' Enter
     bmi_reloadClashUI
