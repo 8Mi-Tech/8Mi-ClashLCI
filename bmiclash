@@ -39,8 +39,11 @@ bmi_downloadHub() {
             curl -# -o $2 $1 1>&1
             bmi_downloadHubError=$?
         ;;
-        *)
+        "")
             bmi_echo "下载引擎未设置,请到 clash_settings.config 内设置 dl_engine=[axel|wget|*curl]"
+        ;;
+        *)
+            bmi_echo "$bmi_downloadHub_EngineID""? 这是什么"
         ;;
     esac
     if [ $4 ]; then
