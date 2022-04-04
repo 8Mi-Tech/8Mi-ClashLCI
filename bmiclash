@@ -88,7 +88,7 @@ bmi_setSystemProxy() {
         
         if [ "`command -v apt`" ]; then
             bmi_echo "检测到系统有APT，正在为APT取消代理"
-            `pwd`/SetSystemProxy.sh apt true
+            `pwd`/SetSystemProxy.sh apt false
         fi
     fi
 }
