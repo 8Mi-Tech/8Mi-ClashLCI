@@ -74,11 +74,21 @@ bmi_setSystemProxy() {
         else
             `pwd`/SetSystemProxy.sh true
         fi
+        
+        if [ "`command -v apt`" ]; then
+            bmi_echo "检测到系统有APT，正在为APT设置代理"
+            `pwd`/SetSystemProxy.sh apt true
+        fi
     else
         if [ "`command -v gsettings`" ]; then
             gsettings set org.gnome.system.proxy mode 'none'
         else
-            `pwd`/SetSystemProxy.sh false
+            `pwd`/SetSystemProxy.sh default false
+        fi
+        
+        if [ "`command -v apt`" ]; then
+            bmi_echo "检测到系统有APT，正在为APT取消代理"
+            `pwd`/SetSystemProxy.sh apt true
         fi
     fi
 }
