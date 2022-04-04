@@ -152,7 +152,7 @@ bmi_clash_getConfig() {
 }
 
 bmi_clash_addConfig() {
-    if [ `grep $1 config.yaml` -z "" ]; then
+    if [ "`grep $1 config.yaml &2>1`" = "" ]; then
         if [ $blank == 0 ]; then
             echo -e "\n"$1": "$2 >>./config.yaml
             blank=1
@@ -201,7 +201,7 @@ bmi_reloadClash() {
         bmi_echo "Clash未加载,无效操作" & exit 1
     fi
     bmi_echo "正在加载(或重载)Clash主程序"
-    bmi_debug 'tmux send-keys -t clash:core C-c "./bmiclash start binary" Enter'
+    tmux send-keys -t clash:core C-c " ./bmiclash start binary" Enter
     bmi_echo "Clash主程序以及界面程序加载完毕(也许是)"
 }
 
