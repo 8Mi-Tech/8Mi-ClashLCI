@@ -28,15 +28,15 @@ bmi_downloadHub() {
     fi
     case $bmi_downloadHub_EngineID in
         "axel")
-            axel -a -o $2 $1 1>&1
+            axel -a -o "$2" "$1" 1>&1
             bmi_downloadHubError=$?
         ;;
         "wget")
-            wget --show-progress --progress=bar:force -O $2 $1 1>&1
+            wget --show-progress --progress=bar:force -O "$2" "$1" 1>&1
             bmi_downloadHubError=$?
         ;;
         "curl")
-            curl -# -o $2 $1 1>&1
+            curl -# -o "$2" "$1" 1>&1
             bmi_downloadHubError=$?
         ;;
         "")
@@ -51,8 +51,8 @@ bmi_downloadHub() {
     else
         bmi_downloadHub_Retry=false
     fi
-    if [ $bmi_downloadHub_Retry == true ] | [ $bmi_downloadHubError != 0 ]; then
-        bmi_downloadHub $1 $2 $3 $4
+    if [ $bmi_downloadHub_Retry = "true" ] | [ $bmi_downloadHubError != 0 ]; then
+        bmi_downloadHub "$1" "$2" "$3" "$4"
     fi
 }
 
@@ -64,15 +64,15 @@ bmi_setSystemProxy() {
     if [ $1 == true ]; then
         if [ "`command -v gsettings`" ]; then
             gsettings set org.gnome.system.proxy mode 'manual'
-            gsettings set org.gnome.system.proxy.http port 7890
+            gsettings set org.gnome.system.proxy.http port 7899
             gsettings set org.gnome.system.proxy.http host '127.0.0.1'
-            gsettings set org.gnome.system.proxy.https port 7890
+            gsettings set org.gnome.system.proxy.https port 7899
             gsettings set org.gnome.system.proxy.https host '127.0.0.1'
-            gsettings set org.gnome.system.proxy.socks port 7890
+            gsettings set org.gnome.system.proxy.socks port 7899
             gsettings set org.gnome.system.proxy.socks host '127.0.0.1'
             gsettings set org.gnome.system.proxy ignore-hosts "['localhost', '127.0.0.0/8', '::1']"
         else
-            `pwd`/SetSystemProxy.sh true
+            `pwd`/SetSystemProxy.sh default true
         fi
         
         if [ "`command -v apt`" ]; then
@@ -94,7 +94,7 @@ bmi_setSystemProxy() {
 }
 
 bmi_setThisProxy(){
-    default_ip="127.0.0.1:7890"
+    default_ip="127.0.0.1:7899"
     if [ $1 == true ]; then
         http_proxy="http://"$default_ip
         https_proxy="http://"$default_ip
@@ -186,8 +186,8 @@ bmi_startClash() {
     env bmi_clash_tmux=true tmux new-session -s clash -n core -d
     bmi_clash_get_failed_count=0
     bmi_reloadClashConfig
-    sleep 2
-    if [ ! "`ps aux | grep "./clash" | grep -v "grep"`" ]; then
+    sleep 5
+    if [ ! "$(ps aux | grep "./clash" | grep -v "grep")" ]; then
         bmi_stopClash
         bmi_echo "加载失败,请检查网络环境以及配置文件下载地址是否正确"
         exit 1
@@ -201,9 +201,7 @@ bmi_startClash() {
 }
 bmi_clash_whenRunning() {
     if [ $TMUX ] && [ $bmi_clash_tmux ]; then
-        bmi_setSystemProxy true
         ./clash -d ./
-        bmi_setSystemProxy false
     else
         bmi_echo "调试??一边玩去 (doge)"
     fi
@@ -227,7 +225,7 @@ bmi_reloadClashConfig() {
     bmi_clash_get_failed_count=0
     bmi_clash_getConfig
     blank=0
-    bmi_clash_addConfig "mixed-port" "7890"
+    bmi_clash_addConfig "mixed-port" "7899"
     bmi_clash_addConfig "allow-lan" "false"
     bmi_clash_addConfig "mode" "Rule"
     bmi_clash_addConfig "log-level" "info"
@@ -316,12 +314,11 @@ bmi_clash_upgradeBinary() {
     bmi_clash_Binary_LinkList=`echo -e "$bmi_clash_Binary_LinkList"`
     case "`arch`" in
         "x86_64")
-            bmi_clash_upgradeBinary_URL=`echo "$bmi_clash_Binary_LinkList" | grep "amd64" `
+            bmi_clash_upgradeBinary_URL=`echo "$bmi_clash_Binary_LinkList" | grep "amd64" | grep -v "v3"`
         ;;
     esac
-    bmi_clash_upgradeBinary_URL=`echo $bmi_clash_upgradeBinary_URL | sed 's#https://github.com##g'`
-    bmi_downloadHub `bmi_clash_getControlConfig github_url`$bmi_clash_upgradeBinary_URL clash.gz
-    #bmi_downloadHub $bmi_clash_upgradeBinary_URL clash.gz
+    bmi_clash_upgradeBinary_URL="`echo $bmi_clash_upgradeBinary_URL | sed 's#https://github.com##g'`"
+    bmi_downloadHub "`bmi_clash_getControlConfig github_url`$bmi_clash_upgradeBinary_URL" "clash.gz"
     gunzip -f clash.gz
     chmod +x clash
     case "`bmi_clash_getControlConfig binary_update_channel`" in
