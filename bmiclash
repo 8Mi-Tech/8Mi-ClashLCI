@@ -165,7 +165,7 @@ bmi_clash_getConfig() {
 }
 
 bmi_clash_addConfig() {
-    if [ "`grep $1 config.yaml &2>1`" = "" ]; then
+    if [ "`grep $1 config.yaml 2>&1`" = "" ]; then
         if [ $blank == 0 ]; then
             echo -e "\n"$1": "$2 >>./config.yaml
             blank=1
