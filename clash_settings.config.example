@@ -17,3 +17,6 @@ binary_version=
 
 #Github镜像地址 默认选项为https://github.com
 github_url=https://github.com
+#github_url=https://ghproxy.futils.com/https://github.com
+#github_url=https://download.fastgit.org
+#github_url=https://mirror.ghproxy.com/https://github.com
