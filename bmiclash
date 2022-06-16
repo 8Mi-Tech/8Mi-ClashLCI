@@ -332,10 +332,45 @@ bmi_clash_upgradeBinary() {
     
 }
 
-bmi_clash_installBinary() {
+bmi_clash_install() {
     if [ -f "./clash" ]; then
         bmi_echo "已经安装,请不要重复安装,如需升级,请输入 bmiclash upgrade" & exit
     fi
+    #自动部署前置 通过包管理器一键部署
+    if [ -x "`command -v apt`" ]; then
+        bmi_pkg_type="apt"
+    else if [ -x "`command -v yum`" ]; then
+            bmi_pkg_type="yum"
+        else if [ -x "`command -v dnf`" ]; then
+                bmi_pkg_type="dnf"
+            fi
+        fi
+    fi
+    case "$bmi_pkg_type" in
+        "apt")
+            bmi_echo "初始化APT包管理器相关"
+            bmi_pkg_inst_cmd="apt install git tmux jq wget curl -y"
+            if [ "$USER" == "root" ]; then
+                apt update
+                eval $bmi_pkg_inst_cmd
+            else
+                sudo apt update
+                eval "sudo "$bmi_pkg_inst_cmd
+            fi
+        ;;
+        *)
+            bmi_echo "不知道怎么初始化，请在项目issues内报告您的发行版" & exit 1
+        ;;
+    esac
+    #自动初始化控制器配置项
+    if [ !-f "clash_settings.config"]; then
+        cp clash_settings.config.example clash_settings.config
+    fi
+    bmi_clash_setControlConfig "dl_engine" "curl"
+    bmi_clash_setControlConfig "binary_update_channel" "premium"
+    bmi_clash_setControlConfig "github_url" "https://ghproxy.futils.com/https://github.com"
+    bmi_clash_setControlConfig "clash_dashboard" "http://clash.razord.top"
+    #初始化完毕后才进入正式环节
     bmi_clash_upgradeBinary
 }
 
@@ -345,21 +380,22 @@ bmi_clash_upgrade() {
     bmi_clash_upgradeBinary 1>&1 2>&2
 }
 # run area
-if [ ! -x "`command -v git`" ]; then
-    bmi_echo "未安装 Git ,无法执行" &
-    exit 1
+if [ "$1" !== "install" ]; then
+    if [ ! -x "`command -v git`" ]; then
+        bmi_echo "未安装 Git ,无法执行" &
+        exit 1
+    fi
+    if [ ! -x "`command -v tmux`" ]; then
+        bmi_echo "未安装 Tmux ,无法执行" &
+        exit 1
+    fi
+    if ! [ -x "`command -v $(bmi_clash_getControlConfig dl_engine) `" ]; then
+        bmi_echo "配置文件里读取到 dl_engine 为 `bmi_clash_getControlConfig dl_engine`, 但系统无法检测到有本指令的存在,请修改或者安装对应的包再执行本程序" & exit 1
+    fi
 fi
-if [ ! -x "`command -v tmux`" ]; then
-    bmi_echo "未安装 Tmux ,无法执行" &
-    exit 1
-fi
-if ! [ -x "`command -v $(bmi_clash_getControlConfig dl_engine) `" ]; then
-    bmi_echo "配置文件里读取到 dl_engine 为 `bmi_clash_getControlConfig dl_engine`, 但系统无法检测到有本指令的存在,请修改或者安装对应的包再执行本程序" & exit 1
-fi
-
 case "$1" in
     "install")
-        bmi_clash_installBinary
+        bmi_clash_install
     ;;
     "start")
         case "$2" in
